@@ -18,11 +18,9 @@ jobs:
         with:
           node-version: '18'
           
-      - name: Install dependencies
-        run: npm install
-        
-      - name: Build
-        run: npm run build || echo "No build script found"
-        
-      - name: Test
-        run: npm test || echo "No test script found"
+      - name: Navigate to project folder and install
+        run: |
+          cd frontend  # Change this to your actual folder name
+          npm install
+          npm run build || true
+          npm test || true
