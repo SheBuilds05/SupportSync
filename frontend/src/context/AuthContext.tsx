@@ -24,14 +24,14 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-const API_BASE = "http://localhost:5000/api";
+// In dev, use relative /api so Vite proxy forwards to backend (no CORS). For production, set VITE_API_BASE_URL in env.
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api"; 
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load auth from localStorage on first render
   useEffect(() => {
     const storedToken = localStorage.getItem("auth_token");
     const storedUser = localStorage.getItem("auth_user");
@@ -46,11 +46,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.removeItem("auth_user");
       }
     }
-
     setLoading(false);
   }, []);
 
   async function login(email: string, password: string) {
+    // Added console log to help you debug in the browser
+    console.log("Attempting login at:", `${API_BASE}/auth/login`);
+    
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
       headers: {
@@ -118,4 +120,3 @@ export function useAuth() {
   }
   return ctx;
 }
-
