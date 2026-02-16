@@ -14,8 +14,8 @@ app.use(express.json());
 
 // MongoDB URI - MUST come from environment for team use.
 // Create a .env file with MONGO_URI=... (not committed to git).
-const mongoURI = process.env.MONGO_URI;
-
+const mongoURI = process.env.MONGODB_URI;
+const port = process.env.PORT || 5000;
 if (!mongoURI) {
   console.error("MONGO_URI is not set. Please add it to your .env file.");
   process.exit(1);
