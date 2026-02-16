@@ -9,7 +9,13 @@ dotenv.config();
 const authRoutes = require("./routes/authRoutes");
 
 const app = express();
-app.use(cors());
+const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+app.use(
+  cors({
+    origin: frontendOrigin,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // MongoDB URI - MUST come from environment for team use.
@@ -54,8 +60,8 @@ mongoose
   .then(() => {
     console.log("MongoDB connected ✅");
 
-    // Start Express server only after DB connection
-    app.listen(PORT, () => {
+    // Start Express server only after DB connection (0.0.0.0 so reachable from browser/proxy)
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
   })
