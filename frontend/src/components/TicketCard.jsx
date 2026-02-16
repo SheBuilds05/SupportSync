@@ -3,6 +3,7 @@ const TicketCard = ({
   updateStatus,
   assignToMe,
   openModal,
+  currentUser // Add this prop
 }) => {
   const getStatusColor = (status) => {
     switch(status) {
@@ -29,6 +30,9 @@ const TicketCard = ({
         return null;
     }
   };
+
+  // Check if the current user is assigned to this ticket
+  const isAssignedToCurrentUser = currentUser && ticket.assignedTo === currentUser.name;
 
   return (
     <div
@@ -57,7 +61,7 @@ const TicketCard = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-[#82AFE5] rounded-full flex items-center justify-center text-xs font-medium text-white">
-            {ticket.createdBy.charAt(0)}
+            {ticket.createdBy?.charAt(0) || '?'}
           </div>
           <span className="text-sm text-gray-600">{ticket.createdBy}</span>
         </div>
@@ -71,8 +75,9 @@ const TicketCard = ({
 
       <p className="text-sm mb-4">
         <span className="text-gray-400">Assigned to:</span>{" "}
-        <span className="font-medium text-[#1B314C]">
+        <span className={`font-medium ${isAssignedToCurrentUser ? 'text-[#82AFE5]' : 'text-[#1B314C]'}`}>
           {ticket.assignedTo || "Unassigned"}
+          {isAssignedToCurrentUser && " (You)"}
         </span>
       </p>
 
@@ -80,7 +85,8 @@ const TicketCard = ({
         className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-100"
         onClick={e => e.stopPropagation()}
       >
-        {ticket.status !== "In Progress" && (
+        {/* Only show Start button if ticket is assigned to current user and not already In Progress */}
+        {isAssignedToCurrentUser && ticket.status === "Open" && (
           <button
             onClick={() => updateStatus(ticket._id, "In Progress")}
             className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition flex items-center gap-1"
@@ -92,7 +98,8 @@ const TicketCard = ({
           </button>
         )}
 
-        {ticket.status !== "Resolved" && (
+        {/* Only show Resolve button if ticket is assigned to current user and not already Resolved */}
+        {isAssignedToCurrentUser && ticket.status === "In Progress" && (
           <button
             onClick={() => updateStatus(ticket._id, "Resolved")}
             className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition flex items-center gap-1"
@@ -104,6 +111,7 @@ const TicketCard = ({
           </button>
         )}
 
+        {/* Show Assign button for any agent if ticket is unassigned */}
         {!ticket.assignedTo && (
           <button
             onClick={() => assignToMe(ticket._id)}

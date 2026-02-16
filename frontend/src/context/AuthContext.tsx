@@ -33,24 +33,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token");
-    const storedUser = localStorage.getItem("auth_user");
+    // Check both possible key names for backward compatibility
+    const storedToken = localStorage.getItem("auth_token") || localStorage.getItem("token");
+    const storedUser = localStorage.getItem("auth_user") || localStorage.getItem("user");
 
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        
+        // Standardize to auth_ keys for consistency
+        if (!localStorage.getItem("auth_token")) {
+          localStorage.setItem("auth_token", storedToken);
+        }
+        if (!localStorage.getItem("auth_user")) {
+          localStorage.setItem("auth_user", storedUser);
+        }
       } catch (e) {
         console.error("Failed to parse stored user", e);
         localStorage.removeItem("auth_token");
         localStorage.removeItem("auth_user");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
     }
     setLoading(false);
   }, []);
 
   async function login(email: string, password: string) {
-    // Added console log to help you debug in the browser
     console.log("Attempting login at:", `${API_BASE}/auth/login`);
     
     const res = await fetch(`${API_BASE}/auth/login`, {
@@ -67,10 +77,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const data = await res.json();
+    console.log("Login successful, token received:", data.token ? "Yes" : "No");
+    
+    // Store in both formats for compatibility
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem("auth_token", data.token);
     localStorage.setItem("auth_user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
   }
 
   async function register(name: string, email: string, password: string, role: Role) {
@@ -88,10 +103,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const data = await res.json();
+    console.log("Registration successful, token received:", data.token ? "Yes" : "No");
+    
+    // Store in both formats for compatibility
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem("auth_token", data.token);
     localStorage.setItem("auth_user", JSON.stringify(data.user));
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
   }
 
   function logout() {
@@ -99,6 +119,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(null);
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   }
 
   const value: AuthContextValue = {

@@ -2,47 +2,45 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const path = require("path");
 
-// Load environment variables from .env if present
-dotenv.config();
+// Load environment variables
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+// Import routes
 const authRoutes = require("./routes/authRoutes");
+const ticketRoutes = require("./routes/ticketRoutes");
 
 const app = express();
 const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
-app.use(
-  cors({
-    origin: frontendOrigin,
-    credentials: true,
-  })
-);
+
+// Middleware
+app.use(cors({
+  origin: frontendOrigin,
+  credentials: true,
+}));
 app.use(express.json());
 
-// MongoDB URI - MUST come from environment for team use.
-// Create a .env file with MONGO_URI=... (not committed to git).
+// MongoDB URI
 const mongoURI = process.env.MONGODB_URI;
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
+
 if (!mongoURI) {
-  console.error("MONGO_URI is not set. Please add it to your .env file.");
+  console.error("MONGODB_URI is not set. Please add it to your .env file.");
   process.exit(1);
 }
 
-const PORT = process.env.PORT || 5000;
-
-// Simple root route so hitting http://localhost:5000 shows something
+// Routes
 app.get("/", (req, res) => {
   res.send("SupportSync API is running");
 });
 
-// Test route to confirm DB connection and list collections
 app.get("/test-db", async (req, res) => {
   try {
-    const database = mongoose.connection.db; // Native MongoDB database
-
+    const database = mongoose.connection.db;
     if (!database) {
       return res.status(500).json({ error: "Database not ready" });
     }
-
     const collections = await database.listCollections().toArray();
     res.json({ collections: collections.map((c) => c.name) });
   } catch (err) {
@@ -51,18 +49,22 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-// Auth routes
+// API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/tickets", ticketRoutes);
 
-// Connect to MongoDB and start server after connection
+// Connect to MongoDB and start server
 mongoose
   .connect(mongoURI)
   .then(() => {
-    console.log("MongoDB connected ✅");
-
-    // Start Express server only after DB connection (0.0.0.0 so reachable from browser/proxy)
+    console.log("✅ MongoDB connected successfully");
     app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`📝 Auth routes: http://localhost:${PORT}/api/auth`);
+      console.log(`🎫 Ticket routes: http://localhost:${PORT}/api/tickets`);
     });
   })
-  .catch((err) => console.error("MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1);
+  });
