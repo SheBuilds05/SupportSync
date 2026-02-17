@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Layout } from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -9,6 +10,9 @@ import MyTickets from "./pages/MyTickets";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Analytics from "./pages/Analytics";
+import UserDashboard from "./pages/UserDashboard";
+import UserTickets from "./pages/UserTickets";
+import UserSettings from "./pages/UserSettings";
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
@@ -38,7 +42,7 @@ const PublicRoute = ({ children }: { children: React.ReactElement }) => {
     if (user.role === 'support') {
       return <Navigate to="/support-dashboard" replace />;
     }
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/user-dashboard" replace />;
   }
   
   return children;
@@ -62,14 +66,14 @@ const DashboardSelector = () => {
   }
   
   // Regular users go to regular dashboard
-  return <Dashboard />;
+   return <Navigate to="/user-dashboard" replace />;
 };
 
 function AppContent() {
   const { user, loading, logout } = useAuth();
   const [connected, setConnected] = useState<boolean | null>(null);
   const [message, setMessage] = useState<string>("");
-
+    
   useEffect(() => {
     fetch("http://localhost:5000/test-db")
       .then((res) => res.json())
@@ -196,6 +200,20 @@ function AppContent() {
           </ProtectedRoute>
         } 
       />
+      
+      {/* Additional routes from second file - using Layout */}
+      <Route 
+        path="/user-dashboard" 
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<UserDashboard />} />
+        <Route path="my-tickets" element={<UserTickets />} />
+        <Route path="settings" element={<UserSettings />} />
+      </Route>
       
       {/* Catch all - redirect to root which handles role-based routing */}
       <Route path="*" element={<Navigate to="/" replace />} />
