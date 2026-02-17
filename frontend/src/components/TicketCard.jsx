@@ -1,9 +1,10 @@
+// frontend/src/components/TicketCard.jsx
 const TicketCard = ({
   ticket,
   updateStatus,
   assignToMe,
   openModal,
-  currentUser // Add this prop
+  currentUser
 }) => {
   const getStatusColor = (status) => {
     switch(status) {
@@ -31,6 +32,27 @@ const TicketCard = ({
     }
   };
 
+  // Debug: Log when button is clicked
+  const handleAssignClick = (e) => {
+    e.stopPropagation();
+    console.log('🔘 Assign button clicked for ticket:', ticket._id);
+    console.log('📦 Ticket data:', ticket);
+    console.log('👤 Current user:', currentUser);
+    assignToMe(ticket._id);
+  };
+
+  const handleStartClick = (e) => {
+    e.stopPropagation();
+    console.log('🔘 Start button clicked for ticket:', ticket._id);
+    updateStatus(ticket._id, "In Progress");
+  };
+
+  const handleResolveClick = (e) => {
+    e.stopPropagation();
+    console.log('🔘 Resolve button clicked for ticket:', ticket._id);
+    updateStatus(ticket._id, "Resolved");
+  };
+
   // Check if the current user is assigned to this ticket
   const isAssignedToCurrentUser = currentUser && ticket.assignedTo === currentUser.name;
 
@@ -44,7 +66,7 @@ const TicketCard = ({
           <h2 className="font-semibold text-[#1B314C] line-clamp-1">
             {ticket.title}
           </h2>
-          <p className="text-xs text-gray-400 mt-1">{ticket._id}</p>
+          <p className="text-xs text-gray-400 mt-1">{ticket.ticketId || ticket._id}</p>
         </div>
 
         <span
@@ -85,10 +107,23 @@ const TicketCard = ({
         className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-100"
         onClick={e => e.stopPropagation()}
       >
-        {/* Only show Start button if ticket is assigned to current user and not already In Progress */}
+        {/* Show Assign button for unassigned tickets */}
+        {!ticket.assignedTo && (
+          <button
+            onClick={handleAssignClick}
+            className="text-xs bg-[#1B314C] text-white px-3 py-1.5 rounded-lg hover:bg-[#82AFE5] transition flex items-center gap-1"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Assign to me
+          </button>
+        )}
+
+        {/* Show Start button for tickets assigned to current user with Open status */}
         {isAssignedToCurrentUser && ticket.status === "Open" && (
           <button
-            onClick={() => updateStatus(ticket._id, "In Progress")}
+            onClick={handleStartClick}
             className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition flex items-center gap-1"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,29 +133,16 @@ const TicketCard = ({
           </button>
         )}
 
-        {/* Only show Resolve button if ticket is assigned to current user and not already Resolved */}
+        {/* Show Resolve button for tickets assigned to current user with In Progress status */}
         {isAssignedToCurrentUser && ticket.status === "In Progress" && (
           <button
-            onClick={() => updateStatus(ticket._id, "Resolved")}
+            onClick={handleResolveClick}
             className="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-lg hover:bg-green-100 transition flex items-center gap-1"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             Resolve
-          </button>
-        )}
-
-        {/* Show Assign button for any agent if ticket is unassigned */}
-        {!ticket.assignedTo && (
-          <button
-            onClick={() => assignToMe(ticket._id)}
-            className="text-xs bg-[#1B314C] text-white px-3 py-1.5 rounded-lg hover:bg-[#82AFE5] transition flex items-center gap-1"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Assign to me
           </button>
         )}
       </div>

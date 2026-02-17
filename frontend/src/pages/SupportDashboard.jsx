@@ -16,7 +16,9 @@ const SupportDashboard = ({ user, onLogout }) => {
 
   // Debug: Log user object
   useEffect(() => {
-    console.log('Current user in dashboard:', user);
+    console.log('👤 Current user in dashboard:', user);
+    console.log('👤 User name:', user?.name);
+    console.log('👤 User role:', user?.role);
   }, [user]);
 
   // Fetch tickets from MongoDB
@@ -30,7 +32,7 @@ const SupportDashboard = ({ user, onLogout }) => {
       // Try both possible token locations
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
       
-      console.log('Fetching tickets - Token exists:', !!token);
+      console.log('🔑 Fetching tickets - Token exists:', !!token);
       
       if (!token) {
         setError('Please log in to view tickets');
@@ -38,6 +40,7 @@ const SupportDashboard = ({ user, onLogout }) => {
         return;
       }
       
+      console.log('📡 Fetching tickets from API...');
       const response = await fetch('http://localhost:5000/api/tickets', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -45,7 +48,7 @@ const SupportDashboard = ({ user, onLogout }) => {
         }
       });
       
-      console.log('Tickets response status:', response.status);
+      console.log('📥 Tickets response status:', response.status);
       
       if (response.status === 401) {
         // Clear all possible token keys
@@ -67,11 +70,11 @@ const SupportDashboard = ({ user, onLogout }) => {
       }
       
       const data = await response.json();
-      console.log('Tickets fetched successfully:', data.length);
+      console.log('✅ Tickets fetched successfully:', data.length);
       setTickets(data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching tickets:', err);
+      console.error('❌ Error fetching tickets:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -80,8 +83,9 @@ const SupportDashboard = ({ user, onLogout }) => {
 
   const updateStatus = async (id, status) => {
     try {
-      console.log(`Updating ticket ${id} to status: ${status}`);
+      console.log(`🔄 Updating ticket ${id} to status: ${status}`);
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      
       const response = await fetch(`http://localhost:5000/api/tickets/${id}`, {
         method: 'PUT',
         headers: {
@@ -91,61 +95,128 @@ const SupportDashboard = ({ user, onLogout }) => {
         body: JSON.stringify({ status })
       });
       
+      const data = await response.json();
+      console.log('📥 Update response:', data);
+      
       if (response.ok) {
-        console.log('Status updated successfully');
-        fetchTickets(); // Refresh the list
+        console.log('✅ Status updated successfully');
+        
+        // Update local state immediately
+        setTickets(prevTickets => 
+          prevTickets.map(ticket => 
+            ticket._id === id 
+              ? { ...ticket, status }
+              : ticket
+          )
+        );
+        
+        setError(null);
       } else {
-        const errorData = await response.json();
-        console.error('Failed to update status:', errorData);
+        console.error('❌ Failed to update status:', data);
+        setError(data.message || 'Failed to update status');
       }
     } catch (error) {
-      console.error('Error updating ticket:', error);
+      console.error('❌ Error updating ticket:', error);
+      setError('Network error while updating status');
     }
   };
 
   const assignToMe = async (id) => {
     try {
-      console.log(`Assigning ticket ${id} to current user`);
+      console.log(`📝 Assigning ticket ${id} to current user`);
+      console.log('👤 Current user name:', user?.name);
+      
+      if (!user?.name) {
+        console.error('❌ No user name found');
+        setError('User information not found');
+        return;
+      }
+      
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      
+      console.log('📡 Sending assign request...');
       const response = await fetch(`http://localhost:5000/api/tickets/${id}/assign`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       
+      const data = await response.json();
+      console.log('📥 Assign response:', data);
+      
       if (response.ok) {
-        console.log('Ticket assigned successfully');
-        fetchTickets(); // Refresh the list
+        console.log('✅ Ticket assigned successfully to:', user.name);
+        
+        // IMMEDIATELY update the local state - THIS IS THE KEY FIX
+        setTickets(prevTickets => 
+          prevTickets.map(ticket => {
+            if (ticket._id === id) {
+              console.log('🔄 Updating ticket in state:', {
+                old: ticket.assignedTo,
+                new: user.name,
+                oldStatus: ticket.status,
+                newStatus: ticket.status === 'Open' ? 'In Progress' : ticket.status
+              });
+              
+              return { 
+                ...ticket, 
+                assignedTo: user.name, 
+                status: ticket.status === 'Open' ? 'In Progress' : ticket.status 
+              };
+            }
+            return ticket;
+          })
+        );
+        
+        setError(null);
       } else {
-        const errorData = await response.json();
-        console.error('Failed to assign ticket:', errorData);
+        console.error('❌ Failed to assign ticket:', data);
+        setError(data.message || 'Failed to assign ticket');
       }
     } catch (error) {
-      console.error('Error assigning ticket:', error);
+      console.error('❌ Error assigning ticket:', error);
+      setError('Network error while assigning ticket');
     }
   };
 
   const resolveTicket = async (id) => {
     try {
-      console.log(`Resolving ticket ${id}`);
+      console.log(`✅ Resolving ticket ${id}`);
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      
       const response = await fetch(`http://localhost:5000/api/tickets/${id}/resolve`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
       
+      const data = await response.json();
+      console.log('📥 Resolve response:', data);
+      
       if (response.ok) {
-        console.log('Ticket resolved successfully');
-        fetchTickets(); // Refresh the list
+        console.log('✅ Ticket resolved successfully');
+        
+        // Update local state immediately
+        setTickets(prevTickets => 
+          prevTickets.map(ticket => 
+            ticket._id === id 
+              ? { ...ticket, status: 'Resolved' }
+              : ticket
+          )
+        );
+        
+        setError(null);
       } else {
-        const errorData = await response.json();
-        console.error('Failed to resolve ticket:', errorData);
+        console.error('❌ Failed to resolve ticket:', data);
+        setError(data.message || 'Failed to resolve ticket');
       }
     } catch (error) {
-      console.error('Error resolving ticket:', error);
+      console.error('❌ Error resolving ticket:', error);
+      setError('Network error while resolving ticket');
     }
   };
 
@@ -160,6 +231,12 @@ const SupportDashboard = ({ user, onLogout }) => {
     return matchesSearch && matchesStatus && matchesPriority;
   });
 
+  // Debug: Log tickets whenever they change
+  useEffect(() => {
+    console.log('📊 Current tickets state:', tickets);
+    console.log('📊 Filtered tickets:', filteredTickets);
+  }, [tickets, filteredTickets]);
+
   // Calculate stats for display
   const openCount = tickets.filter(t => t.status === 'Open').length;
   const inProgressCount = tickets.filter(t => t.status === 'In Progress').length;
@@ -173,26 +250,6 @@ const SupportDashboard = ({ user, onLogout }) => {
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B314C] mx-auto"></div>
             <p className="mt-4 text-gray-500">Loading tickets from database...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex bg-white min-h-screen">
-        <Sidebar user={user} onLogout={onLogout} />
-        <div className="flex-1 p-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-            <p className="font-semibold">Error loading tickets:</p>
-            <p>{error}</p>
-            <button 
-              onClick={fetchTickets}
-              className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-            >
-              Try Again
-            </button>
           </div>
         </div>
       </div>
@@ -216,6 +273,14 @@ const SupportDashboard = ({ user, onLogout }) => {
         </div>
 
         <DashboardStats tickets={tickets} />
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            <p className="font-semibold">Error:</p>
+            <p>{error}</p>
+          </div>
+        )}
 
         {/* Filters Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-8">

@@ -1,5 +1,5 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router();  // ← This line is missing!
 const Ticket = require('../models/Ticket');
 const { authenticate, requireRole } = require('../middleware/auth');
 
@@ -38,22 +38,24 @@ router.get('/:id', authenticate, async (req, res) => {
     }
 });
 
-// Create new ticket
+/// Create new ticket
 router.post('/', authenticate, async (req, res) => {
     try {
         const { title, description, category, priority } = req.body;
         
-        // Generate ticket ID
-        const ticketId = await generateTicketId();
+        // Generate a simple ticket ID
+        const count = await Ticket.countDocuments();
+        const ticketId = 'TKT-' + String(count + 1).padStart(3, '0');
         
         const ticket = new Ticket({
-            ticketId, // Set the generated ID
+            ticketId,
             title,
             description,
             category,
             priority,
             createdBy: req.user.name,
-            createdByEmail: req.user.email
+            createdByEmail: req.user.email,
+            // Let the schema handle timestamps
         });
         
         const newTicket = await ticket.save();
@@ -64,14 +66,40 @@ router.post('/', authenticate, async (req, res) => {
     }
 });
 
-// Assign ticket - SIMPLIFIED
+// Update ticket
+router.put('/:id', authenticate, requireRole('support'), async (req, res) => {
+    try {
+        const ticket = await Ticket.findById(req.params.id);
+        if (!ticket) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
+        
+        const { title, description, category, priority, status } = req.body;
+        
+        if (title) ticket.title = title;
+        if (description) ticket.description = description;
+        if (category) ticket.category = category;
+        if (priority) ticket.priority = priority;
+        if (status) ticket.status = status;
+        
+        ticket.updatedAt = new Date();
+        
+        const updatedTicket = await ticket.save();
+        res.json(updatedTicket);
+    } catch (error) {
+        console.error('Error updating ticket:', error);
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// Assign ticket to agent
 router.put('/:id/assign', authenticate, requireRole('support'), async (req, res) => {
     try {
-        console.log('='.repeat(50));
+        console.log('='.repeat(60));
         console.log('🔧 ASSIGN ROUTE CALLED');
-        console.log('Ticket ID:', req.params.id);
-        console.log('User:', req.user.name);
-        console.log('='.repeat(50));
+        console.log('📌 Ticket ID:', req.params.id);
+        console.log('👤 User:', req.user);
+        console.log('='.repeat(60));
 
         const ticket = await Ticket.findById(req.params.id);
         if (!ticket) {
@@ -84,17 +112,15 @@ router.put('/:id/assign', authenticate, requireRole('support'), async (req, res)
             });
         }
 
-        // Update fields directly
         ticket.assignedTo = req.user.name;
         if (ticket.status === 'Open') {
             ticket.status = 'In Progress';
         }
         ticket.updatedAt = new Date();
 
-        // Save the ticket
         await ticket.save();
         
-        console.log('✅ Ticket assigned successfully');
+        console.log('✅ Ticket assigned successfully to:', req.user.name);
 
         res.json({
             success: true,
@@ -147,4 +173,4 @@ router.put('/:id/resolve', authenticate, requireRole('support'), async (req, res
     }
 });
 
-module.exports = router;
+module.exports = router;  // ← Make sure this is at the end

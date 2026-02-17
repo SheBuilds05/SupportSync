@@ -25,7 +25,7 @@ const ticketSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ['Authentication', 'Bug', 'Feature', 'UI/UX', 'Performance', 'Database', 'Other'],
+        enum: ['Authentication', 'Bug', 'Feature', 'UI/UX', 'Performance', 'Database', 'Hardware', 'Network', 'Other'],
         default: 'Other'
     },
     assignedTo: {
@@ -48,9 +48,12 @@ const ticketSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+}, {
+    timestamps: true // This automatically handles createdAt and updatedAt
 });
 
-// NO MIDDLEWARE AT ALL - we'll handle ticketId in the routes
+// Remove ALL middleware - let MongoDB handle timestamps
+// No pre-save hooks at all
 
 const Ticket = mongoose.model('Ticket', ticketSchema);
 module.exports = Ticket;
