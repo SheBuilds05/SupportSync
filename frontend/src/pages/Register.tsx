@@ -93,7 +93,6 @@ function Register() {
               <option value="support">Support Agent</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              For now, you can self-select role. In a real app, admins would assign support roles.
             </p>
           </div>
           <button

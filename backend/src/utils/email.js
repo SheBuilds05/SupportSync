@@ -1,47 +1,35 @@
 const nodemailer = require("nodemailer");
 
-// Create a reusable transporter using environment variables.
-// If email configuration is missing, we will fall back to logging the reset link.
-function createTransporter() {
-  const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = process.env;
-
-  if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_USER || !EMAIL_PASS) {
-    return null;
-  }
-
-  return nodemailer.createTransport({
-    host: EMAIL_HOST,
-    port: Number(EMAIL_PORT),
-    secure: Number(EMAIL_PORT) === 465, // true for 465, false for others
+/**
+ * Utility to send emails using Nodemailer
+ * @param {Object} options - { to, subject, html }
+ */
+const sendEmail = async (options) => {
+  // 1. Create a transporter
+  const transporter = nodemailer.createTransport({
+    service: "gmail", 
     auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
+      user: process.env.EMAIL_USER, // Your Gmail address
+      pass: process.env.EMAIL_PASS, // Your Gmail App Password
     },
   });
-}
 
-async function sendEmail({ to, subject, html }) {
-  const transporter = createTransporter();
+  // 2. Define email options
+  const mailOptions = {
+    from: `"SupportSync" <${process.env.EMAIL_USER}>`,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+  };
 
-  // If there is no transporter configured, log the email details for development.
-  if (!transporter) {
-    console.log("Email configuration missing. Would have sent email to:", to);
-    console.log("Subject:", subject);
-    console.log("HTML content:", html);
-    return;
+  // 3. Send the email
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("📧 Email sent successfully to:", options.to);
+  } catch (error) {
+    console.error("❌ Email send error:", error);
+    throw new Error("Email could not be sent");
   }
-
-  const from = process.env.EMAIL_FROM || process.env.EMAIL_USER;
-
-  await transporter.sendMail({
-    from,
-    to,
-    subject,
-    html,
-  });
-}
-
-module.exports = {
-  sendEmail,
 };
 
+module.exports = { sendEmail };
