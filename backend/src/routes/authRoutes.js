@@ -8,6 +8,8 @@ const router = express.Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 
+// ADD THIS DEBUG LINE
+console.log("🔥🔥🔥 AUTH ROUTES LOADED - CHECKING TOKEN CREATION 🔥🔥🔥");
 // Register a new user
 // In your register route
 router.post('/register', async (req, res) => {
