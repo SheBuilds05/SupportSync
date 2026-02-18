@@ -18,6 +18,7 @@ const ticketRoutes = require("./routes/ticketRoutes"); // FIXED TYPO (was tiacke
  
 const app = express();
 const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+const allowedOrigins = process.env.FRONTEND_URL || "http://localhost:5173";
  
 // Middleware
 app.use(cors({
