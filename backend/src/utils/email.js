@@ -1,47 +1,34 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
-// Create a reusable transporter using environment variables.
-// If email configuration is missing, we will fall back to logging the reset link.
-function createTransporter() {
-  const { EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS } = process.env;
-
-  if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_USER || !EMAIL_PASS) {
-    return null;
-  }
-
-  return nodemailer.createTransport({
-    host: EMAIL_HOST,
-    port: Number(EMAIL_PORT),
-    secure: Number(EMAIL_PORT) === 465, // true for 465, false for others
+const sendEmail = async (options) => {
+  // 1. Create a transporter (The Mailman)
+  // Get these from your Mailtrap "Inboxes" -> "SMTP Settings" -> "Integrations: Nodemailer"
+  const transporter = nodemailer.createTransport({
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
     auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
-    },
+      user: "YOUR_MAILTRAP_USER_ID", // Replace with your actual user ID
+      pass: "YOUR_MAILTRAP_PASSWORD" // Replace with your actual password
+    }
   });
-}
 
-async function sendEmail({ to, subject, html }) {
-  const transporter = createTransporter();
+  // 2. Define the email options
+  const mailOptions = {
+    from: 'SupportSync <noreply@supportsync.com>',
+    to: options.email,
+    subject: options.subject,
+    text: options.message,
+    // Using HTML makes the link clickable in most email clients
+    html: `<div style="font-family: sans-serif; border: 1px solid #eee; padding: 20px;">
+            <h3>SupportSync Password Reset</h3>
+            <p>${options.message.replace(/\n/g, '<br>')}</p>
+            <p>If you didn't request this, please ignore this email.</p>
+           </div>`
+  };
 
-  // If there is no transporter configured, log the email details for development.
-  if (!transporter) {
-    console.log("Email configuration missing. Would have sent email to:", to);
-    console.log("Subject:", subject);
-    console.log("HTML content:", html);
-    return;
-  }
-
-  const from = process.env.EMAIL_FROM || process.env.EMAIL_USER;
-
-  await transporter.sendMail({
-    from,
-    to,
-    subject,
-    html,
-  });
-}
-
-module.exports = {
-  sendEmail,
+  // 3. Actually send the email
+  await transporter.sendMail(mailOptions);
 };
 
+// Exporting the function directly
+module.exports = sendEmail;

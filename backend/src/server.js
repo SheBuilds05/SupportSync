@@ -15,7 +15,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const ticketRoutes = require("./routes/ticketRoutes"); // FIXED TYPO (was tiacketRoutes)
- 
+const adminRoutes = require('./routes/adminRoutes'); 
+
 const app = express();
 const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
 const allowedOrigins = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -78,7 +79,7 @@ app.get("/test-db", async (req, res) => {
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tickets", ticketRoutes);
- 
+app.use('/api/admin', adminRoutes)
 // Connect to MongoDB and start server
 mongoose
   .connect(mongoURI, {
@@ -104,3 +105,5 @@ mongoose
     }
     process.exit(1);
   });
+
+  
