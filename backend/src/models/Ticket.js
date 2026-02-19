@@ -40,20 +40,21 @@ const ticketSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
+    //  Fields to store the file as a Buffer
+    attachment: {
+        data: {
+            type: Buffer
+        },
+        contentType: {
+            type: String
+        },
+        fileName: {
+            type: String
+        }
     }
 }, {
-    timestamps: true // This automatically handles createdAt and updatedAt
+    timestamps: true // Automatically creates and updates 'createdAt' and 'updatedAt'
 });
-
-// Remove ALL middleware - let MongoDB handle timestamps
-// No pre-save hooks at all
 
 const Ticket = mongoose.model('Ticket', ticketSchema);
 module.exports = Ticket;

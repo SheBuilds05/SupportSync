@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
-// Public route component - only accessible when NOT logged in
+// Public route component 
 const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   const { user, loading } = useAuth();
   
@@ -38,7 +38,6 @@ const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   }
   
   if (user) {
-    // If user is logged in, redirect to appropriate dashboard
     if (user.role === 'support') {
       return <Navigate to="/support-dashboard" replace />;
     }
@@ -59,13 +58,9 @@ const DashboardSelector = () => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  
-  // Redirect support agents to support dashboard
   if (user.role === 'support') {
     return <Navigate to="/support-dashboard" replace />;
   }
-  
-  // Regular users go to regular dashboard
    return <Navigate to="/user-dashboard" replace />;
 };
 
@@ -102,7 +97,6 @@ function AppContent() {
     }
   };
 
-  // Show loading while checking backend connection
   if (connected === null) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -111,14 +105,13 @@ function AppContent() {
     return <div className="flex items-center justify-center min-h-screen text-red-600">{message}</div>;
   }
 
-  // Show loading while checking authentication
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   return (
     <Routes>
-      {/* Public routes - only accessible when NOT logged in */}
+      {/* Public routes  */}
       <Route 
         path="/login" 
         element={
@@ -211,8 +204,8 @@ function AppContent() {
         }
       >
         <Route index element={<UserDashboard />} />
-        <Route path="my-tickets" element={<UserTickets />} />
-        <Route path="settings" element={<UserSettings />} />
+        <Route path="my-tickets" element={<UserTickets user={user} />} />
+        <Route path="settings" element={<UserSettings user={user ?? undefined} onLogout={handleLogout} />} />
       </Route>
       
       {/* Catch all - redirect to root which handles role-based routing */}

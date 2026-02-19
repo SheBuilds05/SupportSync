@@ -1,7 +1,15 @@
 const express = require('express');
-const router = express.Router();  // ← This line is missing!
+const router = express.Router(); 
+const multer = require('multer');
 const Ticket = require('../models/Ticket');
 const { authenticate, requireRole } = require('../middleware/auth');
+
+// --- MULTER CONFIGURATION ---
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
 
 // Helper function to generate ticket ID
 async function generateTicketId() {
@@ -9,12 +17,11 @@ async function generateTicketId() {
         const count = await Ticket.countDocuments();
         return 'TKT-' + String(count + 1).padStart(3, '0');
     } catch (error) {
-        // Fallback to timestamp-based ID
         return 'TKT-' + Date.now().toString().slice(-6);
     }
 }
 
-// Get all tickets
+// Get all tickets for support agents
 router.get('/', authenticate, requireRole('support'), async (req, res) => {
     try {
         const tickets = await Ticket.find().sort({ createdAt: -1 });
@@ -22,6 +29,28 @@ router.get('/', authenticate, requireRole('support'), async (req, res) => {
     } catch (error) {
         console.error('Error fetching tickets:', error);
         res.status(500).json({ message: error.message });
+    }
+});
+
+// Get all tickets for user dashboard - specific user
+router.get('/my-tickets/:email', authenticate, async (req, res) => {
+    try {
+        const requestedEmail = req.params.email;
+        const loggedInUser = req.user;
+
+        if (loggedInUser.role !== 'support' && loggedInUser.email !== requestedEmail) {
+            return res.status(403).json({ 
+                message: "Access denied. You can only view your own tickets." 
+            });
+        }
+
+        const tickets = await Ticket.find({ createdByEmail: requestedEmail })
+                                    .sort({ createdAt: -1 });
+        
+        res.json(tickets);
+    } catch (error) {
+        console.error('Error fetching user tickets:', error);
+        res.status(500).json({ message: "Server error while fetching tickets" });
     }
 });
 
@@ -38,14 +67,30 @@ router.get('/:id', authenticate, async (req, res) => {
     }
 });
 
-/// Create new ticket
-router.post('/', authenticate, async (req, res) => {
+// --- UPDATED CREATE ROUTE WITH MULTER ---
+router.post('/', authenticate, upload.single('attachment'), async (req, res) => {
     try {
+        // req.body is populated by multer now
         const { title, description, category, priority } = req.body;
         
-        // Generate a simple ticket ID
-        const count = await Ticket.countDocuments();
-        const ticketId = 'TKT-' + String(count + 1).padStart(3, '0');
+        let ticketId;
+        let isUnique = false;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        while (!isUnique && attempts < maxAttempts) {
+            const count = await Ticket.countDocuments();
+            ticketId = 'TKT-' + String(count + 1 + attempts).padStart(3, '0');
+            const existingTicket = await Ticket.findOne({ ticketId });
+            if (!existingTicket) {
+                isUnique = true;
+            }
+            attempts++;
+        }
+        
+        if (!isUnique) {
+            ticketId = 'TKT-' + Date.now().toString().slice(-6) + '-' + Math.floor(Math.random() * 100);
+        }
         
         const ticket = new Ticket({
             ticketId,
@@ -55,13 +100,24 @@ router.post('/', authenticate, async (req, res) => {
             priority,
             createdBy: req.user.name,
             createdByEmail: req.user.email,
-            // Let the schema handle timestamps
         });
+
+        // NEW: Handle file attachment if it exists
+        if (req.file) {
+            ticket.attachment = {
+                data: req.file.buffer,
+                contentType: req.file.mimetype,
+                fileName: req.file.originalname
+            };
+        }
         
         const newTicket = await ticket.save();
         res.status(201).json(newTicket);
     } catch (error) {
         console.error('Error creating ticket:', error);
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Ticket ID conflict. Please try again.' });
+        }
         res.status(400).json({ message: error.message });
     }
 });
@@ -95,12 +151,6 @@ router.put('/:id', authenticate, requireRole('support'), async (req, res) => {
 // Assign ticket to agent
 router.put('/:id/assign', authenticate, requireRole('support'), async (req, res) => {
     try {
-        console.log('='.repeat(60));
-        console.log('🔧 ASSIGN ROUTE CALLED');
-        console.log('📌 Ticket ID:', req.params.id);
-        console.log('👤 User:', req.user);
-        console.log('='.repeat(60));
-
         const ticket = await Ticket.findById(req.params.id);
         if (!ticket) {
             return res.status(404).json({ message: 'Ticket not found' });
@@ -119,9 +169,6 @@ router.put('/:id/assign', authenticate, requireRole('support'), async (req, res)
         ticket.updatedAt = new Date();
 
         await ticket.save();
-        
-        console.log('✅ Ticket assigned successfully to:', req.user.name);
-
         res.json({
             success: true,
             message: 'Ticket assigned successfully',
@@ -133,14 +180,9 @@ router.put('/:id/assign', authenticate, requireRole('support'), async (req, res)
                 assignedTo: ticket.assignedTo
             }
         });
-
     } catch (error) {
         console.error('❌ Error in assign route:', error);
-        console.error('Stack:', error.stack);
-        res.status(500).json({ 
-            message: 'Server error',
-            error: error.message 
-        });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
@@ -162,15 +204,11 @@ router.put('/:id/resolve', authenticate, requireRole('support'), async (req, res
         ticket.updatedAt = new Date();
         
         await ticket.save();
-        
-        res.json({ 
-            success: true,
-            message: 'Ticket resolved successfully'
-        });
+        res.json({ success: true, message: 'Ticket resolved successfully' });
     } catch (error) {
         console.error('Error resolving ticket:', error);
         res.status(500).json({ message: error.message });
     }
 });
 
-module.exports = router;  // ← Make sure this is at the end
+module.exports = router;
