@@ -70,7 +70,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   // 3. This is the updated register function inside the Provider
-  async function register(name: string, email: string, password: string, role: Role, adminCode?: string) {
+ async function register(name: string, email: string, password: string, role: Role, adminCode?: string) {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -81,14 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.message || "Registration failed");
     }
-
-    const data = await res.json();
-    setToken(data.token);
-    setUser(data.user);
-    localStorage.setItem("auth_token", data.token);
-    localStorage.setItem("auth_user", JSON.stringify(data.user));
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    return; 
   }
 
   function logout() {

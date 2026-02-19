@@ -1,97 +1,63 @@
-import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 function Login() {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await login(email, password);
-      navigate("/dashboard");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Login failed");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">
-          SupportSync Login
-        </h1>
-        {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
-            {error}
+    /* The main wrapper with the mesh background */
+    <div className="min-h-screen w-full flex items-center justify-center bg-mesh p-4">
+      
+      {/* The "Glass" Container */}
+      <div className="glass w-full max-w-md p-8 rounded-3xl text-white">
+        
+        {/* SupportSync Logo/Title */}
+        <div className="text-center mb-8">
+          <div className="text-4xl font-bold tracking-tighter mb-2">
+            <span className="text-[#82AFE5]">S</span>S
           </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="text-2xl font-semibold">SupportSync</h1>
+          <p className="text-sm text-blue-100 opacity-70">Welcome back! Please login.</p>
+        </div>
+
+        <form className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
+            <label className="block text-xs uppercase tracking-widest mb-2 opacity-80">Email Address</label>
+            <input 
+              type="email" 
+              className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 outline-none focus:border-[#82AFE5] transition-all placeholder-blue-200"
+              placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#82AFE5] focus:border-[#82AFE5]"
-              required
             />
           </div>
+
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              {/* --- FORGOT PASSWORD LINK ADDED HERE --- */}
-              <Link 
-                to="/forgot-password" 
-                className="text-xs font-medium text-[#82AFE5] hover:underline"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-            <input
-              type="password"
+            <label className="block text-xs uppercase tracking-widest mb-2 opacity-80">Password</label>
+            <input 
+              type="password" 
+              className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-3 outline-none focus:border-[#82AFE5] transition-all placeholder-blue-200"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#82AFE5] focus:border-[#82AFE5]"
-              required
-              minLength={6}
             />
           </div>
-          <button
+
+          <button 
             type="submit"
-            disabled={loading}
-            // --- UPDATED BUTTON COLOR TO #82AFE5 ---
-            style={{ backgroundColor: '#82AFE5' }}
-            className="w-full flex justify-center rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#82AFE5] focus-visible:ring-offset-2 disabled:opacity-60 transition-opacity"
+            className="w-full bg-[#82AFE5] hover:bg-blue-300 text-[#1B314C] font-bold py-3 rounded-xl shadow-lg transition-transform transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            {loading ? "Logging in..." : "Login"}
+            Sign In
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Don&apos;t have an account?{" "}
-          <Link to="/register" className="font-medium text-[#82AFE5] hover:underline">
-            Register
+        <div className="mt-8 text-center text-sm">
+          <span className="opacity-70">Don't have an account? </span>
+          <Link to="/register" className="text-[#82AFE5] font-bold hover:underline">
+            Register Here
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

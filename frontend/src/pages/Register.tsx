@@ -9,7 +9,6 @@ function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // 1. Updated types to include 'admin'
   const [role, setRole] = useState<"user" | "support" | "admin">("user");
   const [adminCode, setAdminCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,114 +19,97 @@ function Register() {
     setError(null);
     setLoading(true);
     try {
-      // 2. Added adminCode to the register function call
       await register(name, email, password, role, adminCode);
-      
-      // Navigate based on the role they just picked
-      if (role === 'admin') navigate("/admin-dashboard");
-      else if (role === 'support') navigate("/support-dashboard");
-      else navigate("/user-dashboard");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Registration failed");
-      }
+      alert("Registration successful! Please log in.");
+      navigate("/login");
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">
-          Create SupportSync Account
-        </h1>
+    <div className="min-h-screen w-full flex items-center justify-center bg-mesh p-4">
+      {/* The Glass Container */}
+      <div className="glass w-full max-w-lg p-8 rounded-3xl text-white">
         
+        <div className="text-center mb-6">
+          <div className="text-4xl font-bold tracking-tighter mb-2 text-[#82AFE5]">SS</div>
+          <h1 className="text-2xl font-semibold">Create Account</h1>
+          <p className="text-sm text-blue-100 opacity-70">Join the SupportSync team</p>
+        </div>
+
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <div className="mb-4 p-3 rounded-xl bg-red-500 bg-opacity-20 border border-red-500 border-opacity-30 text-red-100 text-sm text-center">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Full Name</label>
+              <input 
+                type="text" required
+                className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all"
+                value={name} onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Email</label>
+              <input 
+                type="email" required
+                className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all"
+                value={email} onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              required
+            <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Password</label>
+            <input 
+              type="password" required minLength={6}
+              className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all"
+              value={password} onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              required
-              minLength={6}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as "user" | "support" | "admin")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Role</label>
+            <select 
+              className="w-full bg-[#1B314C] bg-opacity-50 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all text-white"
+              value={role} onChange={(e) => setRole(e.target.value as any)}
             >
-              <option value="user">User</option>
-              <option value="support">Support Agent</option>
-              <option value="admin">Administrator</option>
+              <option value="user" className="bg-[#1B314C]">User</option>
+              <option value="support" className="bg-[#1B314C]">Support Agent</option>
+              <option value="admin" className="bg-[#1B314C]">Administrator</option>
             </select>
           </div>
 
-          {/* 3. This is now OUTSIDE the select tag, which is correct! */}
           {role === 'admin' && (
-            <div className="mt-4 p-3 bg-indigo-50 rounded-md border border-indigo-100 animate-pulse-once">
-              <label className="block text-sm font-medium text-indigo-900 mb-1">
-                Admin Secret Code
-              </label>
-              <input
-                type="text"
-                value={adminCode}
-                onChange={(e) => setAdminCode(e.target.value)}
-                className="w-full border border-indigo-300 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Enter 8722"
-                required={role === 'admin'}
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+              <label className="block text-xs uppercase tracking-widest mb-1 text-[#82AFE5]">Admin Secret Code</label>
+              <input 
+                type="text" required
+                placeholder="Enter secret code"
+                className="w-full bg-white bg-opacity-20 border border-[#82AFE5] border-opacity-50 rounded-xl px-4 py-2 outline-none text-white placeholder-blue-200"
+                value={adminCode} onChange={(e) => setAdminCode(e.target.value)}
               />
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-60"
+          <button 
+            type="submit" disabled={loading}
+            className="w-full bg-[#82AFE5] hover:bg-blue-300 text-[#1B314C] font-bold py-3 rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
           >
-            {loading ? "Creating account..." : "Register"}
+            {loading ? "Creating account..." : "Register Now"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-700">
+        <p className="mt-6 text-center text-sm">
+          <span className="opacity-70">Already have an account? </span>
+          <Link to="/login" className="text-[#82AFE5] font-bold hover:underline">
             Login
           </Link>
         </p>

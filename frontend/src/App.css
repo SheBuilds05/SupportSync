@@ -40,3 +40,17 @@
 .read-the-docs {
   color: #888;
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-navy: #1B314C;
+  --accent-blue: #82AFE5;
+}
+
+body {
+  background-color: #f8fafc; /* Keep the background slightly off-white */
+  color: var(--primary-navy); /* Make the default text your Navy color */
+}
