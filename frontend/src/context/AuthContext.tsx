@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-type Role = "user" | "support";
+// 1. Updated Role to include "admin"
+type Role = "user" | "support" | "admin";
 
 type User = {
   id: string;
@@ -14,7 +15,8 @@ type AuthContextValue = {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role: Role) => Promise<void>;
+  // adminCode is optional (hence the ?) because regular users don't use it
+  register: (name: string, email: string, password: string, role: Role, adminCode?: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -24,7 +26,6 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-// In dev, use relative /api so Vite proxy forwards to backend (no CORS). For production, set VITE_API_BASE_URL in env.
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api"; 
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -33,7 +34,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check both possible key names for backward compatibility
     const storedToken = localStorage.getItem("auth_token") || localStorage.getItem("token");
     const storedUser = localStorage.getItem("auth_user") || localStorage.getItem("user");
 
@@ -41,33 +41,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
-        
-        // Standardize to auth_ keys for consistency
-        if (!localStorage.getItem("auth_token")) {
-          localStorage.setItem("auth_token", storedToken);
-        }
-        if (!localStorage.getItem("auth_user")) {
-          localStorage.setItem("auth_user", storedUser);
-        }
       } catch (e) {
         console.error("Failed to parse stored user", e);
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("auth_user");
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
       }
     }
     setLoading(false);
   }, []);
 
   async function login(email: string, password: string) {
-    console.log("Attempting login at:", `${API_BASE}/auth/login`);
-    
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
@@ -77,9 +61,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const data = await res.json();
-    console.log("Login successful, token received:", data.token ? "Yes" : "No");
-    
-    // Store in both formats for compatibility
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem("auth_token", data.token);
@@ -88,13 +69,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.setItem("user", JSON.stringify(data.user));
   }
 
-  async function register(name: string, email: string, password: string, role: Role) {
+  // 3. This is the updated register function inside the Provider
+  async function register(name: string, email: string, password: string, role: Role, adminCode?: string) {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, email, password, role }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, role, adminCode }),
     });
 
     if (!res.ok) {
@@ -103,9 +83,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const data = await res.json();
-    console.log("Registration successful, token received:", data.token ? "Yes" : "No");
-    
-    // Store in both formats for compatibility
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem("auth_token", data.token);
@@ -117,10 +94,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   function logout() {
     setToken(null);
     setUser(null);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.clear();
   }
 
   const value: AuthContextValue = {

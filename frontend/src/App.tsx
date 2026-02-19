@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
+
+// Page Imports
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword"; 
 import Dashboard from "./pages/Dashboard";
 import SupportDashboard from "./pages/SupportDashboard";
+import AdminDashboard from "./pages/AdminDashboard"; // Added this import
 import MyTickets from "./pages/MyTickets";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
@@ -14,80 +19,49 @@ import UserDashboard from "./pages/UserDashboard";
 import UserTickets from "./pages/UserTickets";
 import UserSettings from "./pages/UserSettings";
 
-// Protected route component
+// 1. Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 };
 
-// Public route component - only accessible when NOT logged in
+// 2. Public route component (Login/Register/Forgot Pass)
 const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-  
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
   if (user) {
-    // If user is logged in, redirect to appropriate dashboard
-    if (user.role === 'support') {
-      return <Navigate to="/support-dashboard" replace />;
-    }
+    // Redirect logic updated for Admin
+    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+    if (user.role === 'support') return <Navigate to="/support-dashboard" replace />;
     return <Navigate to="/user-dashboard" replace />;
   }
-  
   return children;
 };
 
-// Role-based dashboard selector
+// 3. Role-based dashboard selector for the "/" path
 const DashboardSelector = () => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  // Redirect support agents to support dashboard
-  if (user.role === 'support') {
-    return <Navigate to="/support-dashboard" replace />;
-  }
-  
-  // Regular users go to regular dashboard
-   return <Navigate to="/user-dashboard" replace />;
+  const { user } = useAuth();
+  if (user?.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+  if (user?.role === 'support') return <Navigate to="/support-dashboard" replace />;
+  return <Navigate to="/user-dashboard" replace />;
 };
 
 function AppContent() {
   const { user, loading, logout } = useAuth();
   const [connected, setConnected] = useState<boolean | null>(null);
-  const [message, setMessage] = useState<string>("");
-    
+  const [dbMessage, setDbMessage] = useState<string>("");
+
   useEffect(() => {
     fetch("http://localhost:5000/test-db")
       .then((res) => res.json())
       .then((data) => {
-        setMessage(
-          data.collections
-            ? "Connected ✅ Collections: " + data.collections.join(", ")
-            : "Connected ✅ but no collections found"
-        );
+        setDbMessage(data.collections ? "Connected ✅" : "No collections found");
         setConnected(true);
       })
       .catch((err) => {
-        console.error("Error:", err);
-        setMessage("Connection failed ❌");
+        setDbMessage("Backend connection failed ❌");
         setConnected(false);
       });
   }, []);
@@ -95,133 +69,72 @@ function AppContent() {
   const handleLogout = async () => {
     try {
       await logout();
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.clear();
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
-  // Show loading while checking backend connection
-  if (connected === null) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-  
   if (connected === false) {
-    return <div className="flex items-center justify-center min-h-screen text-red-600">{message}</div>;
+    return <div className="flex items-center justify-center min-h-screen text-red-600 font-bold">{dbMessage}</div>;
   }
 
-  // Show loading while checking authentication
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (connected === null || loading) {
+    return <div className="flex items-center justify-center min-h-screen">Initializing SupportSync...</div>;
   }
 
   return (
     <Routes>
-      {/* Public routes - only accessible when NOT logged in */}
+      {/* PUBLIC ROUTES */}
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+      <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+
+      {/* ROOT REDIRECT */}
+      <Route path="/" element={<ProtectedRoute><DashboardSelector /></ProtectedRoute>} />
+
+      {/* ADMIN ROUTE */}
       <Route 
-        path="/login" 
+        path="/admin-dashboard" 
         element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
+          <ProtectedRoute>
+            {user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" replace />}
+          </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/register" 
-        element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        } 
-      />
-      
-      {/* Root route - redirects to appropriate dashboard based on role */}
-      <Route path="/" element={
+
+      {/* SUPPORT AGENT ROUTES */}
+      <Route path="/support-dashboard" element={
         <ProtectedRoute>
-          <DashboardSelector />
+          {user?.role === 'support' ? <SupportDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />}
         </ProtectedRoute>
       } />
       
-      {/* Dashboard route - only for regular users */}
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            {user?.role === 'support' ? <Navigate to="/support-dashboard" replace /> : <Dashboard />}
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Support Dashboard route - only for support agents */}
-      <Route 
-        path="/support-dashboard" 
-        element={
-          <ProtectedRoute>
-            {user?.role === 'support' ? <SupportDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/dashboard" replace />}
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Analytics route - only for support agents */}
-      <Route 
-        path="/analytics" 
-        element={
-          <ProtectedRoute>
-            {user?.role === 'support' ? <Analytics user={user} onLogout={handleLogout} /> : <Navigate to="/dashboard" replace />}
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Other protected routes */}
-      <Route 
-        path="/my-tickets" 
-        element={
-          <ProtectedRoute>
-            <MyTickets user={user} onLogout={handleLogout} />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/settings" 
-        element={
-          <ProtectedRoute>
-            <Settings user={user} onLogout={handleLogout} />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/profile" 
-        element={
-          <ProtectedRoute>
-            <Profile user={user} onLogout={handleLogout} />
-          </ProtectedRoute>
-        } 
-      />
-      
-      {/* Additional routes from second file - using Layout */}
-      <Route 
-        path="/user-dashboard" 
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
+      <Route path="/analytics" element={
+        <ProtectedRoute>
+          {user?.role === 'support' ? <Analytics user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />}
+        </ProtectedRoute>
+      } />
+
+      {/* USER ROUTES (WITH SHARED LAYOUT) */}
+      <Route path="/user-dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<UserDashboard />} />
         <Route path="my-tickets" element={<UserTickets />} />
         <Route path="settings" element={<UserSettings />} />
       </Route>
+
+      {/* MISC PROTECTED ROUTES */}
+      <Route path="/profile" element={<ProtectedRoute><Profile user={user} onLogout={handleLogout} /></ProtectedRoute>} />
       
-      {/* Catch all - redirect to root which handles role-based routing */}
+      {/* CATCH ALL */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
-function App() {
+// MAIN APP COMPONENT
+export default function App() {
   return (
     <AuthProvider>
       <Router>
@@ -230,5 +143,3 @@ function App() {
     </AuthProvider>
   );
 }
-
-export default App;

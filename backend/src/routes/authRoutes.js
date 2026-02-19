@@ -1,12 +1,11 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
 const User = require("../models/User");
-const { sendEmail } = require("../utils/email");
+const sendEmail = require("../utils/email"); // Note: Ensure this matches your export in email.js
 
 const router = express.Router();
-
-// Ensure we use the secret from .env
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_me";
 
 console.log("🔥🔥🔥 AUTH ROUTES LOADED 🔥🔥🔥");
@@ -14,17 +13,32 @@ console.log("🔥🔥🔥 AUTH ROUTES LOADED 🔥🔥🔥");
 // --- REGISTER ---
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, adminCode } = req.body;
+
+        // 1. Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: 'User already exists' });
-        
+
+        // 2. SPECIAL ADMIN LOGIC
+        if (role === 'admin') {
+            // Check the secret code
+            if (adminCode !== "8722") {
+                return res.status(403).json({ message: 'Invalid Admin Registration Code' });
+            }
+
+            // Check if there are already 3 admins
+            const adminCount = await User.countDocuments({ role: 'admin' });
+            if (adminCount >= 3) {
+                return res.status(403).json({ message: 'Maximum number of admins (3) reached' });
+            }
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = new User({ name, email, password: hashedPassword, role });
         await user.save();
         
-        const token = jwt.sign({ id: user._id, name: user.name, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-        
-        res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+        res.status(201).json({ token, user: { id: user._id, name: user.name, role: user.role } });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }
@@ -48,63 +62,80 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// --- FORGOT PASSWORD (UPDATED LINK FORMAT) ---
+// --- FORGOT PASSWORD ---
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email is required" });
 
     const user = await User.findOne({ email });
+    // For security, don't confirm if user exists
     if (!user) {
-      return res.json({ message: "If an account with that email exists, a reset link has been sent." });
+      return res.json({ message: "If an account exists, a reset link has been sent." });
     }
 
-    const resetToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
-    const frontendBase = process.env.FRONTEND_URL || "http://localhost:5173";
+    // Generate crypto token
+    const resetToken = crypto.randomBytes(32).toString('hex');
 
-    // CHANGED: Match the frontend route /reset-password/:token
+    // Save token & expiry to database
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const frontendBase = process.env.FRONTEND_URL || "http://localhost:5173";
     const resetLink = `${frontendBase}/reset-password/${resetToken}`;
 
-    await sendEmail({
-      to: user.email,
-      subject: "SupportSync - Password Reset",
-      html: `
-        <p>Hello ${user.name || ""},</p>
-        <p>You requested to reset your SupportSync password.</p>
-        <p>Click the link below to set a new password (valid for 1 hour):</p>
-        <p><a href="${resetLink}" target="_blank">${resetLink}</a></p>
-        <p>If you did not request this, you can ignore this email.</p>
-      `,
-    });
+    // Send the actual email
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: "SupportSync - Password Reset",
+            message: `You requested a password reset. Click the link below to set a new password:\n\n${resetLink}\n\nThis link expires in 1 hour.`
+        });
+        
+        console.log("DEBUG: Reset link generated ->", resetLink);
+        res.json({ message: "If an account exists, a reset link has been sent." });
+    } catch (mailErr) {
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+        res.status(500).json({ message: "Error sending email. Please try again later." });
+    }
 
-    res.json({ message: "If an account with that email exists, a reset link has been sent." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
 
-// --- RESET PASSWORD ---
-router.post("/reset-password", async (req, res) => {
+// --- RESET PASSWORD (:token) ---
+router.post('/reset-password/:token', async (req, res) => {
   try {
-    const { token, password } = req.body;
-    if (!token || !password) return res.status(400).json({ message: "Token and password are required" });
+    const { password } = req.body;
 
-    let decoded;
-    try {
-      decoded = jwt.verify(token, JWT_SECRET);
-    } catch (err) {
-      return res.status(400).json({ message: "Invalid or expired reset token" });
+    // Find user with valid token that hasn't expired
+    const user = await User.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired link." });
     }
 
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(400).json({ message: "User not found" });
-
-    user.password = await bcrypt.hash(password, 10);
+    // Hash the new password and save
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    
+    // Clear reset fields
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    
     await user.save();
 
-    res.json({ message: "Password has been reset successfully. You can now log in." });
+    res.status(200).json({ message: "Success! Password updated. You can now log in." });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });

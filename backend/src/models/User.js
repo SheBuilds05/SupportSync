@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    resetPasswordToken: String,
+  resetPasswordExpires: Date,
     name: {
       type: String,
       required: true,
@@ -21,7 +23,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "support"],
+      enum: ["user", "support", "admin"],
       default: "user",
     },
   },

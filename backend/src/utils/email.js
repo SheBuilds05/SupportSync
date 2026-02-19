@@ -1,35 +1,34 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
-/**
- * Utility to send emails using Nodemailer
- * @param {Object} options - { to, subject, html }
- */
 const sendEmail = async (options) => {
-  // 1. Create a transporter
+  // 1. Create a transporter (The Mailman)
+  // Get these from your Mailtrap "Inboxes" -> "SMTP Settings" -> "Integrations: Nodemailer"
   const transporter = nodemailer.createTransport({
-    service: "gmail", 
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
     auth: {
-      user: process.env.EMAIL_USER, // Your Gmail address
-      pass: process.env.EMAIL_PASS, // Your Gmail App Password
-    },
+      user: "YOUR_MAILTRAP_USER_ID", // Replace with your actual user ID
+      pass: "YOUR_MAILTRAP_PASSWORD" // Replace with your actual password
+    }
   });
 
-  // 2. Define email options
+  // 2. Define the email options
   const mailOptions = {
-    from: `"SupportSync" <${process.env.EMAIL_USER}>`,
-    to: options.to,
+    from: 'SupportSync <noreply@supportsync.com>',
+    to: options.email,
     subject: options.subject,
-    html: options.html,
+    text: options.message,
+    // Using HTML makes the link clickable in most email clients
+    html: `<div style="font-family: sans-serif; border: 1px solid #eee; padding: 20px;">
+            <h3>SupportSync Password Reset</h3>
+            <p>${options.message.replace(/\n/g, '<br>')}</p>
+            <p>If you didn't request this, please ignore this email.</p>
+           </div>`
   };
 
-  // 3. Send the email
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log("📧 Email sent successfully to:", options.to);
-  } catch (error) {
-    console.error("❌ Email send error:", error);
-    throw new Error("Email could not be sent");
-  }
+  // 3. Actually send the email
+  await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendEmail };
+// Exporting the function directly
+module.exports = sendEmail;
