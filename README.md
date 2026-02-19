@@ -1,3 +1,6 @@
+#live link for the application 
+https://supportsync-frontend.onrender.com
+
 # 🎫 SupportSync - Ticketing System
 
 A modern, full-stack ticketing system for IT support teams to manage, track, and resolve internal technical issues efficiently.
