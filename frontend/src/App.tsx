@@ -27,24 +27,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
-<<<<<<< HEAD
-// Public route component 
-=======
+
+ 
 // 2. Public route component (Login/Register/Forgot Pass)
->>>>>>> cbefc838ec535d88c6fb94d0072927c6d4259abd
+
 const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
   if (user) {
-<<<<<<< HEAD
-    if (user.role === 'support') {
-      return <Navigate to="/support-dashboard" replace />;
-    }
-=======
+    const role = user.role as "admin" | "support" | "user";
+
     // Redirect logic updated for Admin
-    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-    if (user.role === 'support') return <Navigate to="/support-dashboard" replace />;
->>>>>>> cbefc838ec535d88c6fb94d0072927c6d4259abd
+    if (role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+    if (role === 'support') return <Navigate to="/support-dashboard" replace />;
+
     return <Navigate to="/user-dashboard" replace />;
   }
   return children;
@@ -52,7 +48,7 @@ const PublicRoute = ({ children }: { children: React.ReactElement }) => {
 
 // 3. Role-based dashboard selector for the "/" path
 const DashboardSelector = () => {
-<<<<<<< HEAD
+
   const { user, loading } = useAuth();
   
   if (loading) {
@@ -62,16 +58,14 @@ const DashboardSelector = () => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
+  if (user.role === 'admin') {
+    return <Navigate to="/admin-dashboard" replace />;
+  }
   if (user.role === 'support') {
     return <Navigate to="/support-dashboard" replace />;
   }
-   return <Navigate to="/user-dashboard" replace />;
-=======
-  const { user } = useAuth();
-  if (user?.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-  if (user?.role === 'support') return <Navigate to="/support-dashboard" replace />;
   return <Navigate to="/user-dashboard" replace />;
->>>>>>> cbefc838ec535d88c6fb94d0072927c6d4259abd
+
 };
 
 function AppContent() {
@@ -101,31 +95,26 @@ function AppContent() {
     }
   };
 
-<<<<<<< HEAD
+
   if (connected === null) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
-=======
->>>>>>> cbefc838ec535d88c6fb94d0072927c6d4259abd
+
   if (connected === false) {
     return <div className="flex items-center justify-center min-h-screen text-red-600 font-bold">{dbMessage}</div>;
   }
 
-<<<<<<< HEAD
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-=======
-  if (connected === null || loading) {
-    return <div className="flex items-center justify-center min-h-screen">Initializing SupportSync...</div>;
->>>>>>> cbefc838ec535d88c6fb94d0072927c6d4259abd
   }
 
   return (
     <Routes>
-<<<<<<< HEAD
+
       {/* Public routes  */}
-=======
+
       {/* PUBLIC ROUTES */}
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
@@ -136,7 +125,7 @@ function AppContent() {
       <Route path="/" element={<ProtectedRoute><DashboardSelector /></ProtectedRoute>} />
 
       {/* ADMIN ROUTE */}
->>>>>>> cbefc838ec535d88c6fb94d0072927c6d4259abd
+
       <Route 
         path="/admin-dashboard" 
         element={
