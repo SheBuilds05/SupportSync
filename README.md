@@ -39,10 +39,10 @@ A modern, full-stack ticketing system for IT support teams to manage, track, and
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 19** with TypeScript
-- **React Router DOM 7** for navigation
-- **Tailwind CSS 4** for styling
-- **Vite 7** for build tooling
+- **React** with TypeScript
+- **React Router DOM** for navigation
+- **Tailwind CSS** for styling
+- **Vite** for build tooling
 - **Context API** for state management
 - **React Hooks** for component logic
 
@@ -50,9 +50,5 @@ A modern, full-stack ticketing system for IT support teams to manage, track, and
 - **Node.js** with Express
 - **MongoDB** with Mongoose
 - **JWT** for authentication
-- **Bcrypt** for password hashing
 - **CORS** enabled
 - **Dotenv** for environment variables
-
-## 📁 Project Structure
-# SupportSync
