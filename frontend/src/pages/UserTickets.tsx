@@ -52,8 +52,8 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                     setLoading(false);
                     return;
                 }
-
-                const response = await fetch(`http://localhost:5000/api/tickets/my-tickets/${user.email}`, {
+                https://supportsync-ujib.onrender.com/api
+                const response = await fetch(`https://supportsync-ujib.onrender.com/api/tickets/my-tickets/${user.email}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
