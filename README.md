@@ -89,6 +89,15 @@ SupportSync is a complete ticketing solution designed for IT support teams. It p
     }
   };
 
+ #### 2. **404 Errors on Page Refresh or Navigation**
+**Symptoms:**
+- Navigating to `/my-tickets` or `/settings` works, but refreshing gives 404
+- Direct links to routes don't work
+- "Cannot GET /my-tickets" error
+ 
+**Solutions:**
+- **For Render deployment**: Add `_redirects` file in `public` folder: 
+
 ## 🚀 Quick Start
 
 ### Prerequisites
