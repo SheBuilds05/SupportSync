@@ -1,57 +1,91 @@
-#live link for the application 
-https://supportsync-frontend.onrender.com
-
 # 🎫 SupportSync - Ticketing System
 
-A modern, full-stack ticketing system for IT support teams to manage, track, and resolve internal technical issues efficiently.
+**Live Demo:** [https://supportsync-frontend.onrender.com](https://supportsync-frontend.onrender.com)
 
+A modern, full-stack ticketing system for IT support teams to manage, track, and resolve internal technical issues efficiently. Built with React, Node.js, and MongoDB.
+
+---
+
+## 📋 Project Overview
+
+SupportSync is a complete ticketing solution designed for IT support teams. It provides a seamless experience for end-users submitting tickets, support agents managing them, and administrators controlling the entire system. Features include role-based access control, real-time status updates, comprehensive analytics, and a beautiful responsive interface.
+
+---
 
 ## ✨ Features
 
 ### 👥 User Roles
-- **Regular Users**: Create and track their own support tickets
-- **Support Agents**: View all tickets, assign to themselves, update status, and resolve issues
+
+| Role | Capabilities |
+|------|--------------|
+| **Admin** | Full system control: delete tickets, manage users, view all data, assign to any agent, update status, access analytics |
+| **Support Agent** | View all tickets, assign to self, update status, resolve tickets, access analytics dashboard |
+| **Regular User** | Create tickets, view own tickets, track status in real-time |
 
 ### 🎯 Core Functionality
-- **Authentication System**: Secure login/register with JWT
-- **Role-Based Access**: Different views and permissions for users and agents
-- **Ticket Management**: Create, view, update, and resolve tickets
-- **Real-Time Status Updates**: Track tickets from Open → In Progress → Resolved
-- **Assignment System**: Agents can claim unassigned tickets
-- **Search & Filter**: Find tickets by title, description, status, or priority
-- **Category Management**: Organize tickets by type (Bug, Feature, UI/UX, etc.)
 
-### 📊 Analytics Dashboard (Agents Only)
-- System-wide ticket statistics
-- Priority distribution charts
-- Category breakdown
-- Agent performance metrics
-- Personal agent statistics
-- Recent activity logs
+- **Authentication System**: Secure login/register with JWT token-based authentication
+- **Role-Based Access**: Different views and permissions for users, agents, and admins
+- **Ticket Management**: Full CRUD operations - Create, Read, Update, Delete (Admin only)
+- **Real-Time Status Updates**: Track tickets from Open → In Progress → Resolved
+- **Assignment System**: Agents can claim unassigned tickets; Admins can assign to any agent
+- **Search & Filter**: Advanced filtering by status, priority, assigned agent, and text search
+- **Category Management**: Organize tickets by type (Bug, Feature, UI/UX, Hardware, Network, etc.)
+
+### 📊 Analytics Dashboard (Agents & Admin)
+
+- System-wide ticket statistics with visual indicators
+- Priority distribution charts with progress bars
+- Category breakdown with color coding
+- Agent performance metrics and resolution rates
+- Personal agent statistics dashboard
+- Recent activity logs with agent filtering
 - Unassigned ticket alerts
 
 ### 🎨 UI/UX
+
 - Clean, modern interface with Tailwind CSS
 - Fully responsive design (mobile, tablet, desktop)
-- Dark blue theme with accent colors
+- Dark blue theme (#1B314C) with accent colors (#82AFE5)
 - Interactive components with hover effects
 - Hamburger menu for mobile navigation
-- Notification system
-- Profile management
+- Real-time notification system
+- Profile management with user statistics
+
+---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **React** with TypeScript
-- **React Router DOM** for navigation
-- **Tailwind CSS** for styling
-- **Vite** for build tooling
-- **Context API** for state management
-- **React Hooks** for component logic
+| Layer | Technologies |
+|-------|--------------|
+| **Frontend** | React 19, TypeScript, Tailwind CSS 4, Vite 7, React Router DOM 7, Context API |
+| **Backend** | Node.js, Express, MongoDB, Mongoose, JWT, Bcrypt, CORS |
+| **Deployment** | Render (Frontend + Backend), MongoDB Atlas |
 
-### Backend
-- **Node.js** with Express
-- **MongoDB** with Mongoose
-- **JWT** for authentication
-- **CORS** enabled
-- **Dotenv** for environment variables
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js v18 or higher
+- npm or yarn package manager
+- MongoDB Atlas account (or local MongoDB)
+- Git for version control
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/supportsync.git
+cd supportsync
+
+# Backend setup
+cd backend
+npm install
+cp .env.example .env  # Add your MongoDB URI and JWT secret
+npm run dev
+
+# Frontend setup (new terminal)
+cd frontend
+npm install
+npm run dev
