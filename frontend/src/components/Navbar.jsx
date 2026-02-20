@@ -176,7 +176,7 @@ const Navbar = ({ user, title }) => {
         {title && <p className="text-sm text-gray-400 mt-1">{title}</p>}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4">     
         {/* Notifications Icon */}
         <div className="relative">
           <button

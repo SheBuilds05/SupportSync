@@ -18,27 +18,28 @@ export const Sidebar = () => {
   };
 
   return (
-    <div className="w-64 h-screen bg-[#1e293b] text-white flex flex-col p-4 fixed left-0 top-0">
+    <div className="w-64 h-screen bg-[#1B314C] text-white flex flex-col p-4 fixed left-0 top-0">
       <div className="text-2xl font-bold mb-10 flex items-center gap-2">
-        <span className="text-blue-400">Support</span>Sync
+        <span className="text-[#82AFE5]">Support</span>
+        <span>Sync</span>
       </div>
       
       <nav className="flex-grow space-y-2">
         <button 
-          onClick={() => navigate('/user-dashboard')} // Changed from /dashboard
-          className="flex items-center gap-3 w-full p-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
+          onClick={() => navigate('/user-dashboard')}
+          className="flex items-center gap-3 w-full p-3 rounded-lg bg-[#82AFE5] hover:bg-[#6B96C7] transition"
         >
           <PlusCircle size={20} /> Create Ticket
         </button>
         <button 
-          onClick={() => navigate('/user-dashboard/my-tickets')} // Changed path
-          className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-slate-700 transition text-slate-300"
+          onClick={() => navigate('/user-dashboard/my-tickets')}
+          className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-[#2A405C] transition text-gray-300 hover:text-white"
         >
           <Ticket size={20} /> My Tickets
         </button>
         <button 
-          onClick={() => navigate('/user-dashboard/settings')} // Changed path
-          className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-slate-700 transition text-slate-300"
+          onClick={() => navigate('/user-dashboard/settings')}
+          className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-[#2A405C] transition text-gray-300 hover:text-white"
         >
           <Settings size={20} /> Settings
         </button>
@@ -46,7 +47,7 @@ export const Sidebar = () => {
 
       <button 
         onClick={handleLogout}
-        className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-red-900/20 text-red-400 mt-auto transition-colors"
+        className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-[#2A405C] transition text-gray-300 hover:text-white"
       >
         <LogOut size={20} /> Logout
       </button>
