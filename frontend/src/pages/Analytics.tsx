@@ -78,7 +78,7 @@ const Analytics = ({ user, onLogout }: AnalyticsProps) => {
       setLoading(true);
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
      
-      const response = await fetch('http://localhost:5000/api/tickets', {
+      const response = await fetch('https://supportsync-ujib.onrender.com/api/tickets', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
