@@ -4,7 +4,7 @@ const multer = require('multer');
 const Ticket = require('../models/Ticket');
 const { authenticate, requireRole } = require('../middleware/auth');
 
-// --- MULTER CONFIGURATION ---
+//MULTER CONFIG
 const storage = multer.memoryStorage();
 const upload = multer({ 
     storage: storage,
@@ -102,7 +102,7 @@ router.post('/', authenticate, upload.single('attachment'), async (req, res) => 
             createdByEmail: req.user.email,
         });
 
-        // NEW: Handle file attachment if it exists
+        // file attachment
         if (req.file) {
             ticket.attachment = {
                 data: req.file.buffer,
