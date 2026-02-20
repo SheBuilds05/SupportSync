@@ -64,7 +64,7 @@ export const UserDashboard = ({ user }: UserDashboardProps) => {
     try {
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
       if (!token || !currentUser?.email) return;
-      const response = await fetch(`http://localhost:5000/api/tickets/${currentUser.email}`, {
+      const response = await fetch(`https://supportsync-ujib.onrender.com/api/tickets/${currentUser.email}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
