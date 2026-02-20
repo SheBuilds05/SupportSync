@@ -62,6 +62,17 @@ mongoose
   .connect(mongoURI)
   .then(() => {
     console.log("✅ MongoDB connected successfully");
+
+    
+app.get('/test-db', async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    const collections = await mongoose.connection.db.listCollections().toArray();
+    res.json({ collections: collections.length > 0 });
+  } catch (err) {
+    res.status(500).json({ error: "Database connection failed", details: err.message });
+  }
+});
     // Important: Use 0.0.0.0 for Render to bind correctly
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`🚀 Server running on port ${PORT}`);
