@@ -46,7 +46,7 @@ const UserSettings = ({ user, onLogout }: UserSettingsProps) => {
     }
   }, []);
 
-  // Apply dark mode to entire app
+  // Apply dark mode
   useEffect(() => {
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
@@ -102,8 +102,6 @@ const UserSettings = ({ user, onLogout }: UserSettingsProps) => {
 
     try {
       setLoading(true);
-      
-      // Mock success
       setMessage({ type: 'success', text: 'Password updated successfully!' });
       setPasswordData({ current: "", new: "", confirm: "" });
       
@@ -120,7 +118,6 @@ const UserSettings = ({ user, onLogout }: UserSettingsProps) => {
       settings.darkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'
     }`}>
       
-      {/* Header Area */}
       <div className="mb-8">
         <p className="text-sm text-slate-500">Welcome back,</p>
         <h1 className="text-2xl font-bold">{accountInfo.name}</h1>
@@ -131,8 +128,6 @@ const UserSettings = ({ user, onLogout }: UserSettingsProps) => {
         <h2 className="text-3xl font-bold">Settings</h2>
         <p className="text-slate-500">Manage your preferences and account settings</p>
       </div>
-
-      {/* Message Alert */}
       {message.text && (
         <div className={`mb-6 p-4 rounded-lg ${
           message.type === 'success' 
@@ -145,18 +140,13 @@ const UserSettings = ({ user, onLogout }: UserSettingsProps) => {
 
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Column: Preferences & Account */}
         <div className="lg:col-span-2 space-y-6">
-          
-          {/* Preferences Card */}
           <div className={`${
             settings.darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
           } p-6 rounded-xl border shadow-sm`}>
             <h3 className="text-xl font-semibold mb-6">Preferences</h3>
             
             <div className="space-y-6">
-              {/* Email Notifications */}
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-medium">Email Notifications</p>
@@ -192,7 +182,6 @@ const UserSettings = ({ user, onLogout }: UserSettingsProps) => {
             </div>
           </div>
 
-          {/* Account Info Card  */}
           <div className={`${
             settings.darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
           } p-6 rounded-xl border shadow-sm`}>
@@ -216,8 +205,6 @@ const UserSettings = ({ user, onLogout }: UserSettingsProps) => {
               </div>
             </div>
           </div>
-          
-            {/* Save Settings Button - Moved to bottom of preferences card */}
             <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
               <button
                 onClick={saveSettings}
