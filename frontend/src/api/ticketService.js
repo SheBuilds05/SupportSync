@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api/tickets";
+const API_URL = "https://supportsync-ujib.onrender.com/api/tickets";
 
 // Get all tickets
 export const getTickets = async (token) => {
