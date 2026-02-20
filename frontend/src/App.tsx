@@ -15,6 +15,8 @@ import Analytics from "./pages/Analytics";
 import UserDashboard from "./pages/UserDashboard";
 import UserTickets from "./pages/UserTickets";
 import UserSettings from "./pages/UserSettings";
+import MyTickets from "./pages/MyTickets";
+import Settings from "./pages/Settings";
 
 // 1. Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
