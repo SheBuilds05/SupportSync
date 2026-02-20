@@ -24,15 +24,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
-// 2. Public route component
+// 2. Public route component (Login/Register/Forgot Pass)
 const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
   if (user) {
-    const role = user.role as "admin" | "support" | "user";
-    if (role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-    if (role === 'support') return <Navigate to="/support-dashboard" replace />;
-    return <Navigate to="/user-dashboard" replace />;
+    if (user.role === 'support') {
+      return <Navigate to="/support-dashboard" replace />;
+    }
   }
   return children;
 };
@@ -40,10 +39,20 @@ const PublicRoute = ({ children }: { children: React.ReactElement }) => {
 // 3. Role-based dashboard selector
 const DashboardSelector = () => {
   const { user, loading } = useAuth();
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
-  if (user.role === 'support') return <Navigate to="/support-dashboard" replace />;
+  
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user.role === 'admin') {
+    return <Navigate to="/admin-dashboard" replace />;
+  }
+  if (user.role === 'support') {
+    return <Navigate to="/support-dashboard" replace />;
+  }
   return <Navigate to="/user-dashboard" replace />;
 };
 
@@ -78,12 +87,17 @@ function AppContent() {
     }
   };
 
-  if (connected === null) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  if (connected === false) return <div className="flex items-center justify-center min-h-screen text-red-600 font-bold">{dbMessage}</div>;
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (connected === null || loading) {
+    return <div className="flex items-center justify-center min-h-screen">Initializing SupportSync...</div>;
+  }
+  if (connected === false) {
+    return <div className="flex items-center justify-center min-h-screen text-red-600 font-bold">{dbMessage}</div>;
+  }
 
   return (
     <Routes>
+      {/* Public routes  */}
+      {/* PUBLIC ROUTES */}
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
@@ -91,6 +105,7 @@ function AppContent() {
 
       <Route path="/" element={<ProtectedRoute><DashboardSelector /></ProtectedRoute>} />
 
+      {/* ADMIN ROUTE */}
       <Route 
         path="/admin-dashboard" 
         element={
