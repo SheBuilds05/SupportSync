@@ -54,7 +54,7 @@ function AppContent() {
 
   useEffect(() => {
     // --- UPDATED THIS LINE TO USE RENDER URL ---
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+   const backendUrl = "https://supportsync-ujib.onrender.com";
     
     fetch(`${backendUrl}/test-db`)
       .then((res) => res.json())
