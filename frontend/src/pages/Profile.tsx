@@ -33,7 +33,7 @@ const Profile = ({ user, onLogout }) => {
         const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
         
         // Fetch tickets to calculate stats
-        const ticketsResponse = await fetch('http://localhost:5000/api/tickets', {
+        const ticketsResponse = await fetch('https://supportsync-ujib.onrender.com/api/tickets', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
