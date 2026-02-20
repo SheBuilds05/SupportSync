@@ -1,6 +1,7 @@
 # 🎫 SupportSync - Ticketing System
 
-**Live Demo:** [https://supportsync-frontend.onrender.com](https://supportsync-frontend.onrender.com)
+**Live Demo:**
+https://supportsync-frontend.onrender.com
 
 A modern, full-stack ticketing system for IT support teams to manage, track, and resolve internal technical issues efficiently. Built with React, Node.js, and MongoDB.
 
