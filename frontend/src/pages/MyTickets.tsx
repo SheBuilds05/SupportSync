@@ -4,11 +4,11 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import TicketCard from "../components/TicketCard";
 import TicketModal from "../components/TicketModal";
- 
+
 // Type definitions
 type TicketStatus = "Open" | "In Progress" | "Resolved";
 type TicketPriority = "High" | "Medium" | "Low";
- 
+
 interface Ticket {
   _id: string;
   ticketId: string;
@@ -23,19 +23,19 @@ interface Ticket {
   createdAt: string;
   updatedAt: string;
 }
- 
+
 interface User {
   name: string;
   email: string;
   role: string;
   id: string;
 }
- 
+
 interface MyTicketsProps {
   user: User | null;
   onLogout: () => void;
 }
- 
+
 const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -44,18 +44,18 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
- 
+
   // Fetch tickets assigned to current user
   useEffect(() => {
     fetchMyTickets();
   }, []);
- 
+
   const fetchMyTickets = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-     
-      // Fetch all tickets first (since we need to filter by assignedTo)
+      
+      // OPTION 1: Fetch all tickets and filter (what you're currently doing)
       const response = await fetch('https://supportsync-ujib.onrender.com/api/tickets', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -70,7 +70,7 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
       const allTickets = await response.json();
      
       // Filter tickets assigned to current user
-      const myTickets = allTickets.filter((ticket: Ticket) =>
+      const myTickets = allTickets.filter((ticket: Ticket) => 
         ticket.assignedTo === user?.name
       );
      
@@ -83,12 +83,13 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
       setLoading(false);
     }
   };
- 
+
   const updateStatus = async (id: string, status: TicketStatus) => {
     try {
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-     
-      const response = await fetch('https://supportsync-ujib.onrender.com/api/tickets', {
+      
+      // ✅ FIXED: Added backticks and included the ticket ID in the URL
+      const response = await fetch(`https://supportsync-ujib.onrender.com/api/tickets/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -96,8 +97,12 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
         },
         body: JSON.stringify({ status })
       });
- 
+
+      const data = await response.json();
+      console.log('📥 Update response:', data);
+
       if (response.ok) {
+        console.log('✅ Status updated successfully');
         // Update local state
         setTickets(prev =>
           prev.map(ticket =>
@@ -106,13 +111,15 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
         );
       } else {
         const error = await response.json();
-        console.error('Failed to update status:', error);
+        console.error('❌ Failed to update status:', error);
+        setError(error.message || 'Failed to update status');
       }
     } catch (error) {
-      console.error('Error updating ticket:', error);
+      console.error('❌ Error updating ticket:', error);
+      setError('Network error while updating status');
     }
   };
- 
+
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = ticket.title.toLowerCase().includes(search.toLowerCase()) ||
                          ticket.description.toLowerCase().includes(search.toLowerCase()) ||
@@ -120,13 +127,13 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
     const matchesStatus = statusFilter === "All" || ticket.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
- 
+
   // Calculate stats
   const totalAssigned = tickets.length;
   const inProgressCount = tickets.filter(t => t.status === "In Progress").length;
   const resolvedCount = tickets.filter(t => t.status === "Resolved").length;
   const openCount = tickets.filter(t => t.status === "Open").length;
- 
+
   if (loading) {
     return (
       <div className="flex bg-white min-h-screen">
@@ -140,7 +147,7 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
       </div>
     );
   }
- 
+
   if (error) {
     return (
       <div className="flex bg-white min-h-screen">
@@ -153,21 +160,21 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
       </div>
     );
   }
- 
+
   return (
     <div className="flex bg-white min-h-screen">
       <Sidebar user={user} onLogout={onLogout} />
- 
+
       <div className="flex-1 p-4 md:p-8">
         <Navbar user={user} title="My Tickets" />
- 
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#1B314C]">My Assigned Tickets</h1>
           <p className="text-gray-500 mt-1">
             {totalAssigned} ticket{totalAssigned !== 1 ? 's' : ''} currently assigned to you
           </p>
         </div>
- 
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -187,7 +194,7 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
             <p className="text-3xl font-bold text-green-600">{resolvedCount}</p>
           </div>
         </div>
- 
+
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
@@ -213,12 +220,12 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
             </select>
           </div>
         </div>
- 
+
         {/* Results count */}
         <div className="mb-4 text-sm text-gray-500">
           Showing {filteredTickets.length} of {tickets.length} tickets
         </div>
- 
+
         {/* Tickets Grid */}
         {filteredTickets.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
@@ -244,7 +251,7 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
             ))}
           </div>
         )}
- 
+
         {/* Ticket Modal */}
         {selectedTicket && (
           <TicketModal
@@ -259,6 +266,5 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
     </div>
   );
 };
- 
+
 export default MyTickets;
- 
