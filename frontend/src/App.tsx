@@ -127,6 +127,18 @@ function AppContent() {
         </ProtectedRoute>
       } />
 
+      <Route path="/my-tickets" element={
+        <ProtectedRoute>
+          {user?.role === 'support' ? <MyTickets user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />}
+        </ProtectedRoute>
+      } />
+
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          {user?.role === 'support' ? <Settings user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />}
+        </ProtectedRoute>
+      } />
+
       <Route path="/user-dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<UserDashboard />} />
         <Route path="my-tickets" element={<UserTickets user={user} />} />
