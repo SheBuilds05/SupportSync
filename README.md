@@ -64,6 +64,30 @@ SupportSync is a complete ticketing solution designed for IT support teams. It p
 | **Deployment** | Render (Frontend + Backend), MongoDB Atlas |
 
 ---
+## 🔧 Troubleshooting Guide
+ 
+### Common Issues & Solutions
+ 
+#### 1. **Backend Connection Failed / 503 Error**
+**Symptoms:**
+- App shows "Backend connection failed"
+- API requests timeout or return 503
+- First load takes very long
+ 
+**Solutions:**
+- **Free tier spin-down**: Render free services spin down after 15 minutes of inactivity. First request may take 30-60 seconds to wake up.
+- **Add retry logic** in your frontend:
+  ```javascript
+  const fetchWithRetry = async (url, options = {}, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        return await fetch(url, options);
+      } catch (err) {
+        if (i === retries - 1) throw err;
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  };
 
 ## 🚀 Quick Start
 
