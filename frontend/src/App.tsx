@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Layout } from "./components/Layout";
-
-// Page Imports
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -18,7 +16,7 @@ import UserSettings from "./pages/UserSettings";
 import MyTickets from "./pages/MyTickets";
 import Settings from "./pages/Settings";
 
-// 1. Protected route component
+//  Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
@@ -26,7 +24,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
-// 2. Public route component (Login/Register/Forgot Pass)
+//  Public route component (Login/Register/Forgot Pass)
 const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen">Loading Auth...</div>;
@@ -38,7 +36,7 @@ const PublicRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
-// 3. Role-based dashboard selector
+//  Role-based dashboard selector
 const DashboardSelector = () => {
   const { user, loading } = useAuth();
   
@@ -64,7 +62,6 @@ function AppContent() {
   const [dbMessage, setDbMessage] = useState<string>("");
 
   useEffect(() => {
-    // --- UPDATED THIS LINE TO USE RENDER URL ---
    const backendUrl = "https://supportsync-ujib.onrender.com";
     
     fetch(`${backendUrl}/test-db`)
@@ -98,8 +95,6 @@ function AppContent() {
 
   return (
     <Routes>
-      {/* Public routes  */}
-      {/* PUBLIC ROUTES */}
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
@@ -107,7 +102,7 @@ function AppContent() {
 
       <Route path="/" element={<ProtectedRoute><DashboardSelector /></ProtectedRoute>} />
 
-      {/* ADMIN ROUTE */}
+      {/*ADMIN*/}
       <Route 
         path="/admin-dashboard" 
         element={
