@@ -56,7 +56,7 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
      
       // Fetch all tickets first (since we need to filter by assignedTo)
-      const response = await fetch('https://supportsync-ujib.onrender.com/api', {
+      const response = await fetch('https://supportsync-ujib.onrender.com/api/tickets', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -88,7 +88,7 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
     try {
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
      
-      const response = await fetch(`http://localhost:5000/api/tickets/${id}`, {
+      const response = await fetch('https://supportsync-ujib.onrender.com/api/tickets', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
