@@ -26,7 +26,7 @@ type AuthProviderProps = {
   children: ReactNode;
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api"; 
+const API_BASE = "https://supportsync-ujib.onrender.com/api";
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
