@@ -133,9 +133,8 @@ const SupportDashboard = ({ user, onLogout }) => {
       }
       
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-      
       console.log('📡 Sending assign request...');
-      const response = await fetch(`http://localhost:5000/api/tickets/${id}/assign`, {
+      const response = await fetch(`https://supportsync-ujib.onrender.com/api/tickets/${id}/assign`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -186,7 +185,7 @@ const SupportDashboard = ({ user, onLogout }) => {
       console.log(`✅ Resolving ticket ${id}`);
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:5000/api/tickets/${id}/resolve`, {
+      const response = await fetch(`https://supportsync-ujib.onrender.com/api/tickets/${id}/resolve`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
