@@ -30,8 +30,6 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
-
-    // Helper to convert MongoDB Buffer to a browser-usable URL
     const getAttachmentUrl = (attachment: any) => {
         if (!attachment || !attachment.data) return null;
         try {
@@ -125,8 +123,6 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                     </div>
                 )}
             </div>
-
-            {/* --- MODAL POP-UP --- */}
             {selectedTicket && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -176,7 +172,7 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                                 </div>
                             </div>
 
-                            {/* --- ATTACHMENT SECTION --- */}
+                            {/*ATTACHMENT */}
                             {selectedTicket.attachment && (
                                 <div className="mt-6 border-t border-slate-100 pt-6">
                                     <p className="text-xs text-slate-400 uppercase font-bold mb-3">Attachment</p>
@@ -207,7 +203,7 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                                             </a>
                                         </div>
 
-                                        {/* Image Preview */}
+                                        {/*Image-view*/}
                                         {selectedTicket.attachment.contentType.startsWith('image/') && (
                                             <div className="mt-4 border-t border-slate-200 pt-4">
                                                 <img 
@@ -222,7 +218,7 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                             )}
                         </div>
 
-                        {/* Modal Footer */}
+                        {/*Footer*/}
                         <div className="p-6 border-t border-slate-100 text-right">
                             <button 
                                 onClick={() => setSelectedTicket(null)}
