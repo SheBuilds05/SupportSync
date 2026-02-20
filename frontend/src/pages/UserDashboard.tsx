@@ -111,7 +111,7 @@ export const UserDashboard = ({ user }: UserDashboardProps) => {
         dataToSend.append('attachment', attachment);
       }
 
-      const response = await fetch("http://localhost:5000/api/tickets", {
+      const response = await fetch("https://supportsync-ujib.onrender.com/api/tickets'/tickets", {
         method: "POST",
         headers: {
           // NOTE: Do NOT set Content-Type header when sending FormData; 
