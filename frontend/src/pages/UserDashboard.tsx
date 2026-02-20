@@ -98,7 +98,6 @@ export const UserDashboard = ({ user }: UserDashboardProps) => {
     }
 
     try {
-      // NEW: Using FormData to handle file uploads
       const dataToSend = new FormData();
       dataToSend.append('title', formData.title);
       dataToSend.append('description', formData.description);
@@ -252,8 +251,6 @@ export const UserDashboard = ({ user }: UserDashboardProps) => {
                 </select> 
              </div> 
           </div> 
-
-          {/* NEW: File Attachment Field */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Attach File (PDF, Image, Doc)</label>
             <input 
@@ -263,7 +260,6 @@ export const UserDashboard = ({ user }: UserDashboardProps) => {
               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
             />
           </div>
-
           <button 
             type="submit"
             disabled={loading}
@@ -276,5 +272,4 @@ export const UserDashboard = ({ user }: UserDashboardProps) => {
     </div> 
   ); 
 }; 
-
 export default UserDashboard;
