@@ -9,7 +9,6 @@ function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // 1. Updated types to include 'admin'
   const [role, setRole] = useState<"user" | "support" | "admin">("user");
   const [adminCode, setAdminCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,78 +19,79 @@ function Register() {
     setError(null);
     setLoading(true);
     try {
-      // 2. Added adminCode to the register function call
       await register(name, email, password, role, adminCode);
-      
-      // Navigate based on the role they just picked
-      if (role === 'admin') navigate("/admin-dashboard");
-      else if (role === 'support') navigate("/support-dashboard");
-      else navigate("/user-dashboard");
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Registration failed");
-      }
+      alert("Registration successful! Please log in.");
+      navigate("/login");
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">
-          Create SupportSync Account
-        </h1>
-        
+    <div className="login-container">
+      <div className="shape shape-z"></div>
+      <div className="shape shape-sphere"></div>
+      <div className="shape shape-five">5</div>
+      <div className="shape shape-glow"></div>
+      <div className="shape shape-snake"></div>
+      <div className="shape shape-ring"></div>
+      <div className="shape shape-triangle"></div>
+      <div className="shape shape-squiggle"></div>
+      <div className="shape shape-pill"></div>
+
+      <div className="glass-card max-w-lg">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+             <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-2xl rotate-3">
+               <span className="text-2xl font-black text-white italic">SS</span>
+             </div>
+          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Create Account</h1>
+          <p className="text-white/50 text-sm mt-1">Join the SupportSync team</p>
+        </div>
+
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <div className="mb-6 p-3 rounded-xl bg-red-500 bg-opacity-20 border border-red-500/30 text-red-100 text-sm text-center">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Full Name</label>
+              <input 
+                type="text" required
+                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
+                value={name} onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Email</label>
+              <input 
+                type="email" required
+                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
+                value={email} onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              required
+            <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Password</label>
+            <input 
+              type="password" required minLength={6}
+              className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
+              value={password} onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              required
-              minLength={6}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as "user" | "support" | "admin")}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Role</label>
+            <select 
+              className="w-full bg-[#0b1b36] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
+              value={role} onChange={(e) => setRole(e.target.value as any)}
             >
               <option value="user">User</option>
               <option value="support">Support Agent</option>
@@ -99,37 +99,29 @@ function Register() {
             </select>
           </div>
 
-          {/* 3. This is now OUTSIDE the select tag, which is correct! */}
           {role === 'admin' && (
-            <div className="mt-4 p-3 bg-indigo-50 rounded-md border border-indigo-100 animate-pulse-once">
-              <label className="block text-sm font-medium text-indigo-900 mb-1">
-                Admin Secret Code
-              </label>
-              <input
-                type="text"
-                value={adminCode}
-                onChange={(e) => setAdminCode(e.target.value)}
-                className="w-full border border-indigo-300 rounded-md p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Enter 8722"
-                required={role === 'admin'}
+            <div className="animate-in fade-in slide-in-from-top-2">
+              <label className="text-[10px] uppercase tracking-widest text-blue-400 font-bold ml-1">Admin Secret Code</label>
+              <input 
+                type="text" required
+                placeholder="Enter secret code"
+                className="w-full bg-white/10 border border-blue-400/50 p-3 rounded-xl text-white mt-1"
+                value={adminCode} onChange={(e) => setAdminCode(e.target.value)}
               />
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-60"
+          <button 
+            type="submit" disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 disabled:opacity-50 mt-4"
           >
-            {loading ? "Creating account..." : "Register"}
+            {loading ? "Creating account..." : "Register Now"}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{" "}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-700">
-            Login
-          </Link>
+        <p className="mt-8 text-center text-sm text-white/50">
+          Already have an account? 
+          <Link to="/login" className="text-blue-400 font-bold hover:underline ml-1">Login</Link>
         </p>
       </div>
     </div>
