@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { Users, Ticket, Clock, Shield, LogOut, RefreshCw } from "lucide-react";
 
 function AdminDashboard() {
   const { logout } = useAuth();
@@ -9,19 +10,34 @@ function AdminDashboard() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalUsers: 0, totalTickets: 0, pendingWork: 0 });
   const [newAdminCode, setNewAdminCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
-    const supportAgents = users.filter(u => u.role === 'support');
-    setAgents(supportAgents);
-    const l = await fetch("http://localhost:5000/api/admin/logs").then(r => r.json()); setLogs(l);
-    const [u, t, s] = await Promise.all([
-      fetch("http://localhost:5000/api/admin/users").then(r => r.json()),
-      fetch("http://localhost:5000/api/admin/tickets").then(r => r.json()),
-      fetch("http://localhost:5000/api/admin/stats").then(r => r.json())
-    ]);
-    setUsers(u); setTickets(t); setStats(s);
+    setLoading(true);
+    try {
+      const [u, t, s, l] = await Promise.all([
+        fetch("http://localhost:5000/api/admin/users").then(r => r.json()),
+        fetch("http://localhost:5000/api/admin/tickets").then(r => r.json()),
+        fetch("http://localhost:5000/api/admin/stats").then(r => r.json()),
+        fetch("http://localhost:5000/api/admin/logs").then(r => r.json())
+      ]);
+
+      setUsers(u);
+      setTickets(t);
+      setStats(s);
+      setLogs(l);
+      
+      // Correctly filter agents after users are fetched
+      setAgents(u.filter((user: any) => user.role === 'support'));
+    } catch (err) {
+      console.error("Error fetching admin data:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const changeRole = async (userId: string, newRole: string) => {
@@ -30,7 +46,7 @@ function AdminDashboard() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role: newRole })
     });
-    fetchData(); // Refresh the list
+    fetchData();
   };
 
   const updateSecretCode = async () => {
@@ -39,132 +55,175 @@ function AdminDashboard() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newCode: newAdminCode })
     });
-    alert("Secret code changed! New admins must use " + newAdminCode);
+    alert("Secret code updated successfully!");
     setNewAdminCode("");
   };
 
-const reassignTicket = async (ticketId: string, agentId: string) => {
-  await fetch(`http://localhost:5000/api/admin/tickets/${ticketId}/reassign`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ agentId })
-  });
-  alert("Ticket reassigned!");
-  fetchData(); // Refresh to show the new owner
-};
-
-{/* GLOBAL TICKETS SECTION */}
-<div className="bg-white p-6 rounded shadow mt-8">
-  <h2 className="text-xl font-bold mb-4">Ticket Reassignment</h2>
-  {tickets.map(t => (
-    <div key={t._id} className="flex justify-between p-3 border-b items-center">
-      <div>
-        <p className="font-medium">{t.title}</p>
-        <p className="text-xs text-gray-500">Currently: {t.assignedTo?.name || "Unassigned"}</p>
-      </div>
-      
-      <select 
-        className="text-sm border rounded p-1"
-        onChange={(e) => reassignTicket(t._id, e.target.value)}
-        value={t.assignedTo?._id || ""}
-      >
-        <option value="">Assign to Agent...</option>
-        {agents.map(agent => (
-          <option key={agent._id} value={agent._id}>{agent.name}</option>
-        ))}
-      </select>
-    </div>
-  ))}
-</div>
+  const reassignTicket = async (ticketId: string, agentId: string) => {
+    await fetch(`http://localhost:5000/api/admin/tickets/${ticketId}/reassign`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agentId })
+    });
+    fetchData();
+  };
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Admin Control Center</h1>
-        <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded">Logout</button>
+    <div className="min-h-screen bg-[#0a192f] text-white p-4 md:p-8">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-10">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight">Admin Control</h1>
+          <p className="text-[#82AFE5] opacity-70">SupportSync System Management</p>
+        </div>
+        <div className="flex gap-4">
+          <button onClick={fetchData} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+          </button>
+          <button onClick={logout} className="flex items-center gap-2 bg-red-500/20 border border-red-500/50 text-red-200 px-5 py-2 rounded-xl hover:bg-red-500/30 transition-all">
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
       </div>
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="bg-white p-6 rounded shadow text-center">
-            <p className="text-gray-500">Total Users</p>
-            <p className="text-2xl font-bold">{stats.totalUsers}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="glass-container p-6 rounded-3xl border-l-4 border-[#82AFE5]">
+          <div className="flex items-center gap-4">
+            <Users className="text-[#82AFE5]" />
+            <div>
+              <p className="text-xs uppercase tracking-widest opacity-50">Total Users</p>
+              <p className="text-3xl font-bold">{stats.totalUsers}</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded shadow text-center border-l-4 border-blue-500">
-            <p className="text-gray-500">Global Tickets</p>
-            <p className="text-2xl font-bold">{stats.totalTickets}</p>
+        <div className="glass-container p-6 rounded-3xl border-l-4 border-blue-500">
+          <div className="flex items-center gap-4">
+            <Ticket className="text-blue-500" />
+            <div>
+              <p className="text-xs uppercase tracking-widest opacity-50">Global Tickets</p>
+              <p className="text-3xl font-bold">{stats.totalTickets}</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded shadow text-center border-l-4 border-orange-500">
-            <p className="text-gray-500">Tickets Waiting</p>
-            <p className="text-2xl font-bold">{stats.pendingWork}</p>
+        <div className="glass-container p-6 rounded-3xl border-l-4 border-orange-500">
+          <div className="flex items-center gap-4">
+            <Clock className="text-orange-500" />
+            <div>
+              <p className="text-xs uppercase tracking-widest opacity-50">Pending Work</p>
+              <p className="text-3xl font-bold">{stats.pendingWork}</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* USER MANAGEMENT */}
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-bold mb-4">Users & Permissions</h2>
-          {users.map(u => (
-            <div key={u._id} className="flex justify-between p-2 border-b">
-              <span>{u.name} ({u.role})</span>
+        <div className="glass-container p-8 rounded-[2rem]">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <Shield size={20} className="text-[#82AFE5]" /> Users & Permissions
+          </h2>
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+            {users.map(u => (
+              <div key={u._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div>
+                  <p className="font-medium">{u.name}</p>
+                  <p className="text-xs opacity-40 uppercase tracking-tighter">{u.email}</p>
+                </div>
+                <select 
+                  className="bg-[#1B314C] border border-white/10 rounded-lg px-3 py-1 text-sm outline-none focus:border-[#82AFE5]"
+                  value={u.role} 
+                  onChange={(e) => changeRole(u._id, e.target.value)}
+                >
+                  <option value="user">User</option>
+                  <option value="support">Support</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECURITY & CODES */}
+        <div className="glass-container p-8 rounded-[2rem]">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <Shield size={20} className="text-cyan-400" /> System Security
+          </h2>
+          <div className="bg-cyan-500/5 border border-cyan-500/20 p-6 rounded-2xl">
+            <label className="block text-sm font-bold uppercase tracking-widest mb-3 opacity-70">Admin Secret Code</label>
+            <div className="flex gap-3">
+              <input 
+                type="text" 
+                className="bg-white/5 border border-white/10 p-3 flex-grow rounded-xl outline-none focus:border-cyan-400"
+                placeholder="New Secret Code" 
+                value={newAdminCode}
+                onChange={(e) => setNewAdminCode(e.target.value)}
+              />
+              <button onClick={updateSecretCode} className="bg-cyan-500 text-[#0a192f] font-bold px-6 py-2 rounded-xl hover:brightness-110 transition-all">
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* TICKET REASSIGNMENT */}
+      <div className="glass-container p-8 rounded-[2rem] mt-8">
+        <h2 className="text-xl font-bold mb-6">Ticket Reassignment</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2">
+          {tickets.map(t => (
+            <div key={t._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div>
+                <p className="font-medium">{t.title}</p>
+                <p className="text-[10px] uppercase opacity-40">Agent: {t.assignedTo?.name || "Unassigned"}</p>
+              </div>
               <select 
-                className="text-sm border rounded"
-                value={u.role} 
-                onChange={(e) => changeRole(u._id, e.target.value)}
+                className="bg-[#1B314C] border border-white/10 rounded-lg px-3 py-1 text-sm outline-none"
+                onChange={(e) => reassignTicket(t._id, e.target.value)}
+                value={t.assignedTo?._id || ""}
               >
-                <option value="user">User</option>
-                <option value="support">Support</option>
-                <option value="admin">Admin</option>
+                <option value="">Select Agent...</option>
+                {agents.map(agent => (
+                  <option key={agent._id} value={agent._id}>{agent.name}</option>
+                ))}
               </select>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* CLUBHOUSE SETTINGS */}
-        <div className="bg-white p-6 rounded shadow">
-          <h2 className="text-xl font-bold mb-4">Security Settings</h2>
-          <label className="block text-sm mb-2">Change Admin Registration Code</label>
-          <div className="flex gap-2">
-            <input 
-              type="text" 
-              className="border p-2 flex-grow rounded"
-              placeholder="New Secret Code" 
-              value={newAdminCode}
-              onChange={(e) => setNewAdminCode(e.target.value)}
-            />
-            <button onClick={updateSecretCode} className="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
-          </div>
+      {/* AUDIT LOGS */}
+      <div className="glass-container p-8 rounded-[2rem] mt-8 overflow-hidden">
+        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">📜 System Audit Logs</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white/5 uppercase text-[10px] font-bold tracking-widest">
+              <tr>
+                <th className="p-4">Time</th>
+                <th className="p-4">Admin</th>
+                <th className="p-4">Action</th>
+                <th className="p-4">Details</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {logs?.map((log) => (
+                <tr key={log._id} className="hover:bg-white/5 transition-colors">
+                  <td className="p-4 opacity-50">{new Date(log.timestamp).toLocaleString()}</td>
+                  <td className="p-4 font-bold text-[#82AFE5]">{log.performedBy?.name || "System"}</td>
+                  <td className="p-4">
+                    <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter border border-blue-500/20">
+                      {log.action}
+                    </span>
+                  </td>
+                  <td className="p-4 opacity-70">{log.details}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
 }
-
-{/* AUDIT LOG SECTION */}
-<div className="bg-white p-6 rounded shadow mt-8">
-  <h2 className="text-xl font-bold mb-4">📜 System Audit Logs</h2>
-  <div className="overflow-y-auto max-h-60">
-    <table className="w-full text-left text-sm">
-      <thead className="bg-gray-50 uppercase text-xs font-bold">
-        <tr>
-          <th className="p-2">Time</th>
-          <th className="p-2">Admin</th>
-          <th className="p-2">Action</th>
-          <th className="p-2">Details</th>
-        </tr>
-      </thead>
-      <tbody>
-        {logs.map((log) => (
-          <tr key={log._id} className="border-b hover:bg-gray-50">
-            <td className="p-2 text-gray-500">{new Date(log.timestamp).toLocaleString()}</td>
-            <td className="p-2 font-bold">{log.performedBy?.name || "System"}</td>
-            <td className="p-2"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">{log.action}</span></td>
-            <td className="p-2 text-gray-600">{log.details}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-</div>
 
 export default AdminDashboard;

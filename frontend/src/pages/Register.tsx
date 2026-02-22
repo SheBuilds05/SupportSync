@@ -30,70 +30,82 @@ function Register() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-mesh p-4">
-      {/* The Glass Container */}
-      <div className="glass w-full max-w-lg p-8 rounded-3xl text-white">
-        
-        <div className="text-center mb-6">
-          <div className="text-4xl font-bold tracking-tighter mb-2 text-[#82AFE5]">SS</div>
-          <h1 className="text-2xl font-semibold">Create Account</h1>
-          <p className="text-sm text-blue-100 opacity-70">Join the SupportSync team</p>
+    <div className="login-container">
+      <div className="shape shape-z"></div>
+      <div className="shape shape-sphere"></div>
+      <div className="shape shape-five">5</div>
+      <div className="shape shape-glow"></div>
+      <div className="shape shape-snake"></div>
+      <div className="shape shape-ring"></div>
+      <div className="shape shape-triangle"></div>
+      <div className="shape shape-squiggle"></div>
+      <div className="shape shape-pill"></div>
+
+      <div className="glass-card max-w-lg">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+             <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-2xl rotate-3">
+               <span className="text-2xl font-black text-white italic">SS</span>
+             </div>
+          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Create Account</h1>
+          <p className="text-white/50 text-sm mt-1">Join the SupportSync team</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-500 bg-opacity-20 border border-red-500 border-opacity-30 text-red-100 text-sm text-center">
+          <div className="mb-6 p-3 rounded-xl bg-red-500 bg-opacity-20 border border-red-500/30 text-red-100 text-sm text-center">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 text-left">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Full Name</label>
+              <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Full Name</label>
               <input 
                 type="text" required
-                className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all"
+                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
                 value={name} onChange={(e) => setName(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Email</label>
+              <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Email</label>
               <input 
                 type="email" required
-                className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all"
+                className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
                 value={email} onChange={(e) => setEmail(e.target.value)}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Password</label>
+            <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Password</label>
             <input 
               type="password" required minLength={6}
-              className="w-full bg-white bg-opacity-10 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all"
+              className="w-full bg-white/5 border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
               value={password} onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs uppercase tracking-widest mb-1 opacity-80">Role</label>
+            <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Role</label>
             <select 
-              className="w-full bg-[#1B314C] bg-opacity-50 border border-white border-opacity-20 rounded-xl px-4 py-2 outline-none focus:border-[#82AFE5] transition-all text-white"
+              className="w-full bg-[#0b1b36] border border-white/10 p-3 rounded-xl text-white outline-none focus:border-blue-400 mt-1"
               value={role} onChange={(e) => setRole(e.target.value as any)}
             >
-              <option value="user" className="bg-[#1B314C]">User</option>
-              <option value="support" className="bg-[#1B314C]">Support Agent</option>
-              <option value="admin" className="bg-[#1B314C]">Administrator</option>
+              <option value="user">User</option>
+              <option value="support">Support Agent</option>
+              <option value="admin">Administrator</option>
             </select>
           </div>
 
           {role === 'admin' && (
-            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-              <label className="block text-xs uppercase tracking-widest mb-1 text-[#82AFE5]">Admin Secret Code</label>
+            <div className="animate-in fade-in slide-in-from-top-2">
+              <label className="text-[10px] uppercase tracking-widest text-blue-400 font-bold ml-1">Admin Secret Code</label>
               <input 
                 type="text" required
                 placeholder="Enter secret code"
-                className="w-full bg-white bg-opacity-20 border border-[#82AFE5] border-opacity-50 rounded-xl px-4 py-2 outline-none text-white placeholder-blue-200"
+                className="w-full bg-white/10 border border-blue-400/50 p-3 rounded-xl text-white mt-1"
                 value={adminCode} onChange={(e) => setAdminCode(e.target.value)}
               />
             </div>
@@ -101,17 +113,15 @@ function Register() {
 
           <button 
             type="submit" disabled={loading}
-            className="w-full bg-[#82AFE5] hover:bg-blue-300 text-[#1B314C] font-bold py-3 rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 disabled:opacity-50 mt-4"
           >
             {loading ? "Creating account..." : "Register Now"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm">
-          <span className="opacity-70">Already have an account? </span>
-          <Link to="/login" className="text-[#82AFE5] font-bold hover:underline">
-            Login
-          </Link>
+        <p className="mt-8 text-center text-sm text-white/50">
+          Already have an account? 
+          <Link to="/login" className="text-blue-400 font-bold hover:underline ml-1">Login</Link>
         </p>
       </div>
     </div>

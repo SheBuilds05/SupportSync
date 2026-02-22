@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 function ResetPassword() {
-  const { token } = useParams(); // Grabs the token from the URL link
+  const { token } = useParams();
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
@@ -42,48 +42,58 @@ function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center text-gray-900">
-          Create New Password
-        </h1>
+    <div className="login-container">
+      <div className="shape shape-z"></div>
+      <div className="shape shape-sphere"></div>
+      <div className="shape shape-five">5</div>
+      <div className="shape shape-glow"></div>
+      <div className="shape shape-snake"></div>
+      <div className="shape shape-ring"></div>
+      <div className="shape shape-triangle"></div>
+      <div className="shape shape-squiggle"></div>
+      <div className="shape shape-pill"></div>
+
+      <div className="glass-card text-center">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-2xl mb-4 rotate-3">
+            <span className="text-2xl font-black text-white italic">SS</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tight">New Password</h1>
+          <p className="text-white/50 text-sm mt-1">Create a secure password</p>
+        </div>
 
         {message && (
-          <div className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-700">
+          <div className="mb-6 p-3 rounded-xl bg-green-500 bg-opacity-20 border border-green-500/30 text-green-100 text-sm">
             {message}
           </div>
         )}
 
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          <div className="mb-6 p-3 rounded-xl bg-red-500 bg-opacity-20 border border-red-500/30 text-red-100 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 text-left">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
+            <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">New Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#82AFE5] focus:border-[#82AFE5]"
+              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-blue-400 mt-1"
               required
               minLength={6}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm New Password
-            </label>
+            <label className="text-[10px] uppercase tracking-widest text-white/70 font-bold ml-1">Confirm New Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#82AFE5] focus:border-[#82AFE5]"
+              className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-blue-400 mt-1"
               required
             />
           </div>
@@ -91,15 +101,14 @@ function ResetPassword() {
           <button
             type="submit"
             disabled={loading}
-            style={{ backgroundColor: '#82AFE5' }}
-            className="w-full flex justify-center rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90 transition-opacity disabled:opacity-60"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 disabled:opacity-50"
           >
             {loading ? "Updating..." : "Update Password"}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <Link to="/login" className="text-sm font-medium text-[#82AFE5] hover:underline">
+        <div className="mt-8">
+          <Link to="/login" className="text-sm font-bold text-blue-400 hover:underline">
             Cancel and go to Login
           </Link>
         </div>
