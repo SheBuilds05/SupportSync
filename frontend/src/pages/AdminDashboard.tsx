@@ -2,10 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Users, Ticket, Clock, Shield, LogOut, RefreshCw, Activity } from "lucide-react";
 
-// The production API URL
+// THIS IS THE MOST IMPORTANT LINE: It tells the site to look at Render, not your computer.
 const API_BASE = "https://supportsync-ujib.onrender.com/api/admin";
 
-function AdminDashboard() {
+export default function AdminDashboard() {
   const { logout } = useAuth();
   const [logs, setLogs] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
@@ -15,16 +15,16 @@ function AdminDashboard() {
   const [newAdminCode, setNewAdminCode] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // UseCallback prevents the build tool (Rollup) from getting confused during deployment
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || "";
       const headers = { 
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json' 
+        'Content-Type': 'application/json'
       };
 
+      // We use the live API_BASE here
       const [u, t, s, l] = await Promise.all([
         fetch(`${API_BASE}/users`, { headers }).then(r => r.ok ? r.json() : []),
         fetch(`${API_BASE}/tickets`, { headers }).then(r => r.ok ? r.json() : []),
@@ -32,16 +32,15 @@ function AdminDashboard() {
         fetch(`${API_BASE}/logs`, { headers }).then(r => r.ok ? r.json() : [])
       ]);
 
-      // Added safety checks to prevent ".filter" errors if the server returns an error object
-      const safeUsers = Array.isArray(u) ? u : [];
-      setUsers(safeUsers);
+      setUsers(Array.isArray(u) ? u : []);
       setTickets(Array.isArray(t) ? t : []);
       setStats(s?.totalUsers !== undefined ? s : (s?.data || { totalUsers: 0, totalTickets: 0, pendingWork: 0 }));
       setLogs(Array.isArray(l) ? l : []);
       
-      setAgents(safeUsers.filter((user: any) => user.role === 'support'));
+      const userList = Array.isArray(u) ? u : [];
+      setAgents(userList.filter((user: any) => user.role === 'support'));
     } catch (err) {
-      console.error("Connection failed:", err);
+      console.error("Fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -53,43 +52,55 @@ function AdminDashboard() {
 
   const changeRole = async (userId: string, newRole: string) => {
     const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-    await fetch(`${API_BASE}/users/${userId}/role`, {
-      method: 'PATCH',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify({ role: newRole })
-    });
-    fetchData();
+    try {
+      await fetch(`${API_BASE}/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+      fetchData();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const updateSecretCode = async () => {
-    if (!newAdminCode) return;
+    if(!newAdminCode) return;
     const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-    await fetch(`${API_BASE}/update-code`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ newCode: newAdminCode })
-    });
-    alert("✅ Secret code updated successfully!");
-    setNewAdminCode("");
+    try {
+      await fetch(`${API_BASE}/update-code`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newCode: newAdminCode })
+      });
+      alert("✅ Secret code updated!");
+      setNewAdminCode("");
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const reassignTicket = async (ticketId: string, agentId: string) => {
     const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-    await fetch(`${API_BASE}/tickets/${ticketId}/reassign`, {
-      method: 'PATCH',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ agentId })
-    });
-    fetchData();
+    try {
+      await fetch(`${API_BASE}/tickets/${ticketId}/reassign`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ agentId })
+      });
+      fetchData();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   return (
@@ -112,7 +123,7 @@ function AdminDashboard() {
 
       {/* STATS CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border-l-4 border-[#82AFE5]">
+        <div className="bg-white/5 p-6 rounded-3xl border-l-4 border-[#82AFE5]">
           <div className="flex items-center gap-4">
             <Users className="text-[#82AFE5]" />
             <div>
@@ -121,7 +132,7 @@ function AdminDashboard() {
             </div>
           </div>
         </div>
-        <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border-l-4 border-blue-500">
+        <div className="bg-white/5 p-6 rounded-3xl border-l-4 border-blue-500">
           <div className="flex items-center gap-4">
             <Ticket className="text-blue-500" />
             <div>
@@ -130,7 +141,7 @@ function AdminDashboard() {
             </div>
           </div>
         </div>
-        <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border-l-4 border-orange-500">
+        <div className="bg-white/5 p-6 rounded-3xl border-l-4 border-orange-500">
           <div className="flex items-center gap-4">
             <Clock className="text-orange-500" />
             <div>
@@ -142,16 +153,16 @@ function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white/5 backdrop-blur-md p-8 rounded-[2rem]">
+        <div className="bg-white/5 p-8 rounded-[2rem]">
           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
             <Shield size={20} className="text-[#82AFE5]" /> Users & Permissions
           </h2>
           <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-            {users.map(u => (
+            {users.map((u: any) => (
               <div key={u._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
                 <div>
                   <p className="font-medium">{u.name}</p>
-                  <p className="text-xs opacity-40 uppercase tracking-tighter">{u.email}</p>
+                  <p className="text-xs opacity-40 uppercase">{u.email}</p>
                 </div>
                 <select 
                   className="bg-[#1B314C] border border-white/10 rounded-lg px-3 py-1 text-sm outline-none"
@@ -167,7 +178,7 @@ function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-md p-8 rounded-[2rem]">
+        <div className="bg-white/5 p-8 rounded-[2rem]">
           <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
             <Activity size={20} className="text-cyan-400" /> System Security
           </h2>
@@ -181,7 +192,7 @@ function AdminDashboard() {
                 value={newAdminCode}
                 onChange={(e) => setNewAdminCode(e.target.value)}
               />
-              <button onClick={updateSecretCode} className="bg-cyan-500 text-[#0a192f] font-bold px-6 py-2 rounded-xl hover:brightness-110 transition-all">
+              <button onClick={updateSecretCode} className="bg-cyan-500 text-[#0a192f] font-bold px-6 py-2 rounded-xl hover:brightness-110">
                 Update
               </button>
             </div>
@@ -189,13 +200,13 @@ function AdminDashboard() {
         </div>
       </div>
 
-      <div className="bg-white/5 backdrop-blur-md p-8 rounded-[2rem] mt-8">
+      <div className="bg-white/5 p-8 rounded-[2rem] mt-8">
         <h2 className="text-xl font-bold mb-6">Ticket Reassignment</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2">
-          {tickets.map(t => (
+          {tickets.map((t: any) => (
             <div key={t._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
-              <div>
-                <p className="font-medium truncate max-w-[150px]">{t.title}</p>
+              <div className="max-w-[60%]">
+                <p className="font-medium truncate">{t.title}</p>
                 <p className="text-[10px] uppercase opacity-40">Agent: {t.assignedTo?.name || "Unassigned"}</p>
               </div>
               <select 
@@ -204,7 +215,7 @@ function AdminDashboard() {
                 value={t.assignedTo?._id || ""}
               >
                 <option value="">Select Agent...</option>
-                {agents.map(agent => (
+                {agents.map((agent: any) => (
                   <option key={agent._id} value={agent._id}>{agent.name}</option>
                 ))}
               </select>
@@ -212,8 +223,37 @@ function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {/* AUDIT LOGS */}
+      <div className="bg-white/5 p-8 rounded-[2rem] mt-8 overflow-hidden">
+        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">📜 System Audit Logs</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-white/5 uppercase text-[10px] font-bold tracking-widest">
+              <tr>
+                <th className="p-4">Time</th>
+                <th className="p-4">Admin</th>
+                <th className="p-4">Action</th>
+                <th className="p-4">Details</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {logs.map((log: any) => (
+                <tr key={log._id} className="hover:bg-white/5 transition-colors">
+                  <td className="p-4 opacity-50">{new Date(log.timestamp).toLocaleString()}</td>
+                  <td className="p-4 font-bold text-[#82AFE5]">{log.performedBy?.name || "System"}</td>
+                  <td className="p-4">
+                    <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-blue-500/20">
+                      {log.action}
+                    </span>
+                  </td>
+                  <td className="p-4 opacity-70">{log.details}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
-
-export default AdminDashboard;
