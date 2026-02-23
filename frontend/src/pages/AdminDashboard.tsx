@@ -2,10 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Users, Ticket, Clock, Shield, LogOut, RefreshCw, Activity } from "lucide-react";
 
-//  Move the URL outside the component so it's a stable constant
+// The production API URL
 const API_BASE = "https://supportsync-ujib.onrender.com/api/admin";
 
-export default function AdminDashboard() {
+function AdminDashboard() {
   const { logout } = useAuth();
   const [logs, setLogs] = useState<any[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
@@ -15,14 +15,14 @@ export default function AdminDashboard() {
   const [newAdminCode, setNewAdminCode] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Wrap fetchData in useCallback to satisfy strict build requirements
+  // UseCallback prevents the build tool (Rollup) from getting confused during deployment
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('auth_token') || localStorage.getItem('token') || "";
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
       const headers = { 
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json' 
       };
 
       const [u, t, s, l] = await Promise.all([
@@ -32,15 +32,16 @@ export default function AdminDashboard() {
         fetch(`${API_BASE}/logs`, { headers }).then(r => r.ok ? r.json() : [])
       ]);
 
-      setUsers(Array.isArray(u) ? u : []);
+      // Added safety checks to prevent ".filter" errors if the server returns an error object
+      const safeUsers = Array.isArray(u) ? u : [];
+      setUsers(safeUsers);
       setTickets(Array.isArray(t) ? t : []);
       setStats(s?.totalUsers !== undefined ? s : (s?.data || { totalUsers: 0, totalTickets: 0, pendingWork: 0 }));
       setLogs(Array.isArray(l) ? l : []);
       
-      const userList = Array.isArray(u) ? u : [];
-      setAgents(userList.filter((user: any) => user.role === 'support'));
+      setAgents(safeUsers.filter((user: any) => user.role === 'support'));
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Connection failed:", err);
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
   };
 
   const updateSecretCode = async () => {
-    if(!newAdminCode) return;
+    if (!newAdminCode) return;
     const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
     await fetch(`${API_BASE}/update-code`, {
       method: 'POST',
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
       },
       body: JSON.stringify({ newCode: newAdminCode })
     });
-    alert("✅ Secret code updated!");
+    alert("✅ Secret code updated successfully!");
     setNewAdminCode("");
   };
 
@@ -92,69 +93,68 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-slate-50 text-slate-800 p-8">
+    <div className="min-h-screen bg-[#0a192f] text-white p-4 md:p-8">
       {/* Header */}
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex justify-between items-center mb-10">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Admin Control</h1>
-          <p className="text-slate-500">System-wide management and oversight</p>
+          <h1 className="text-4xl font-bold tracking-tight">Admin Control</h1>
+          <p className="text-[#82AFE5] opacity-70">SupportSync System Management</p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={fetchData} className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+        <div className="flex gap-4">
+          <button onClick={fetchData} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
             <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
           </button>
-          <button onClick={logout} className="flex items-center gap-2 bg-white border border-red-200 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-50 transition-all font-medium shadow-sm">
+          <button onClick={logout} className="flex items-center gap-2 bg-red-500/20 border border-red-500/50 text-red-200 px-5 py-2 rounded-xl hover:bg-red-500/30 transition-all">
             <LogOut size={18} /> Logout
           </button>
         </div>
       </div>
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border-l-4 border-[#82AFE5]">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><Users size={24} /></div>
+            <Users className="text-[#82AFE5]" />
             <div>
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Users</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalUsers}</p>
+              <p className="text-xs uppercase tracking-widest opacity-50">Total Users</p>
+              <p className="text-3xl font-bold">{stats.totalUsers}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border-l-4 border-blue-500">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><Ticket size={24} /></div>
+            <Ticket className="text-blue-500" />
             <div>
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Global Tickets</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.totalTickets}</p>
+              <p className="text-xs uppercase tracking-widest opacity-50">Global Tickets</p>
+              <p className="text-3xl font-bold">{stats.totalTickets}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="bg-white/5 backdrop-blur-md p-6 rounded-3xl border-l-4 border-orange-500">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-orange-50 text-orange-600 rounded-lg"><Clock size={24} /></div>
+            <Clock className="text-orange-500" />
             <div>
-              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Pending Work</p>
-              <p className="text-2xl font-bold text-slate-900">{stats.pendingWork}</p>
+              <p className="text-xs uppercase tracking-widest opacity-50">Pending Work</p>
+              <p className="text-3xl font-bold">{stats.pendingWork}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* USER MANAGEMENT */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
-            <Shield size={20} className="text-blue-600" /> Users & Permissions
+        <div className="bg-white/5 backdrop-blur-md p-8 rounded-[2rem]">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <Shield size={20} className="text-[#82AFE5]" /> Users & Permissions
           </h2>
-          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
             {users.map(u => (
-              <div key={u._id} className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
+              <div key={u._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
                 <div>
-                  <p className="font-semibold text-slate-700">{u.name}</p>
-                  <p className="text-xs text-slate-500">{u.email}</p>
+                  <p className="font-medium">{u.name}</p>
+                  <p className="text-xs opacity-40 uppercase tracking-tighter">{u.email}</p>
                 </div>
                 <select 
-                  className="bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm"
+                  className="bg-[#1B314C] border border-white/10 rounded-lg px-3 py-1 text-sm outline-none"
                   value={u.role} 
                   onChange={(e) => changeRole(u._id, e.target.value)}
                 >
@@ -167,21 +167,21 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
-            <Activity size={20} className="text-blue-600" /> System Security
+        <div className="bg-white/5 backdrop-blur-md p-8 rounded-[2rem]">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+            <Activity size={20} className="text-cyan-400" /> System Security
           </h2>
-          <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-xl">
-            <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-slate-500">Admin Secret Code</label>
+          <div className="bg-cyan-500/5 border border-cyan-500/20 p-6 rounded-2xl">
+            <label className="block text-sm font-bold uppercase tracking-widest mb-3 opacity-70">Admin Secret Code</label>
             <div className="flex gap-3">
               <input 
                 type="text" 
-                className="bg-white border border-slate-300 p-2.5 flex-grow rounded-lg outline-none"
-                placeholder="Enter new secret code" 
+                className="bg-white/5 border border-white/10 p-3 flex-grow rounded-xl outline-none"
+                placeholder="New Secret Code" 
                 value={newAdminCode}
                 onChange={(e) => setNewAdminCode(e.target.value)}
               />
-              <button onClick={updateSecretCode} className="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-md">
+              <button onClick={updateSecretCode} className="bg-cyan-500 text-[#0a192f] font-bold px-6 py-2 rounded-xl hover:brightness-110 transition-all">
                 Update
               </button>
             </div>
@@ -189,18 +189,17 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* TICKET REASSIGNMENT */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-8">
-        <h2 className="text-lg font-bold mb-6 text-slate-800">Global Ticket Reassignment</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-80 overflow-y-auto">
+      <div className="bg-white/5 backdrop-blur-md p-8 rounded-[2rem] mt-8">
+        <h2 className="text-xl font-bold mb-6">Ticket Reassignment</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2">
           {tickets.map(t => (
-            <div key={t._id} className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-              <div className="mb-3">
-                <p className="font-semibold text-slate-700 truncate">{t.title}</p>
-                <p className="text-[11px] font-medium text-slate-400 uppercase">Current: {t.assignedTo?.name || "Unassigned"}</p>
+            <div key={t._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div>
+                <p className="font-medium truncate max-w-[150px]">{t.title}</p>
+                <p className="text-[10px] uppercase opacity-40">Agent: {t.assignedTo?.name || "Unassigned"}</p>
               </div>
               <select 
-                className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm"
+                className="bg-[#1B314C] border border-white/10 rounded-lg px-3 py-1 text-sm outline-none"
                 onChange={(e) => reassignTicket(t._id, e.target.value)}
                 value={t.assignedTo?._id || ""}
               >
@@ -216,3 +215,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+export default AdminDashboard;
