@@ -90,6 +90,16 @@ function AppContent() {
         } 
       />
       
+          {/* Other protected routes */}
+      <Route 
+        path="/my-tickets" 
+        element={
+          <ProtectedRoute>
+            <MyTickets user={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        } 
+      />
+      
       <Route 
         path="/settings" 
         element={
@@ -97,19 +107,38 @@ function AppContent() {
             <Settings user={user} onLogout={handleLogout} />
           </ProtectedRoute>
         } 
-      <Route path="/user-dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      />
+      
+      <Route 
+        path="/profile" 
+        element={
+          <ProtectedRoute>
+            <Profile user={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Additional routes from second file - using Layout */}
+      <Route 
+        path="/user-dashboard" 
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<UserDashboard />} />
         <Route path="my-tickets" element={<UserTickets />} />
         <Route path="settings" element={<UserSettings />} />
       </Route>
-
-      <Route path="/profile" element={<ProtectedRoute><Profile user={user} onLogout={handleLogout} /></ProtectedRoute>} />
+      
+      {/* Catch all - redirect to root which handles role-based routing */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
-export default function App() {
+function App() {
   return (
     <AuthProvider>
       <Router>
@@ -118,3 +147,5 @@ export default function App() {
     </AuthProvider>
   );
 }
+
+export default App;
