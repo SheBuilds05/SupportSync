@@ -53,7 +53,6 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                     setLoading(false);
                     return;
                 }
-                // Updated to use the centralized production URL
                 const response = await fetch(`${API_BASE_URL}/tickets/my-tickets/${user.email}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -86,56 +85,67 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
 
     if (loading) {
         return (
-            <div className="ml-64 p-8 bg-slate-50 h-screen flex items-center justify-center">
+            <div className="ml-64 p-8 bg-slate-50 min-h-screen flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
         );
     }
 
     return ( 
-        /* FIXED: Added h-screen and overflow-y-auto to enable scrolling */
-        <div className="ml-64 p-8 bg-slate-50 h-screen overflow-y-auto"> 
-            <div className="max-w-5xl mx-auto">
-                <h1 className="text-2xl font-bold text-slate-800 mb-6">My Tickets</h1> 
-                
-                <div className="space-y-4 pb-20"> 
-                    {tickets.length > 0 ? (
-                        tickets.map((t) => ( 
-                            <div 
-                                key={t._id} 
-                                onClick={() => setSelectedTicket(t)} 
-                                className="bg-white p-6 rounded-xl border border-slate-200 flex items-center justify-between hover:shadow-md hover:border-blue-300 cursor-pointer transition"
-                            > 
-                                <div className="flex items-center gap-6"> 
-                                    <div className={`w-1 h-12 rounded-full ${getStatusStyle(t.status).split(' ')[0]}`}></div> 
-                                    <div> 
-                                        <h3 className="text-lg font-bold text-slate-800">{t.title}</h3> 
-                                        <p className="text-sm text-slate-500">
-                                            {t.ticketId} • {new Date(t.createdAt).toLocaleDateString()}
-                                        </p> 
+        /* FIXED: Changed structure for proper scrolling */
+        <div className="ml-64 bg-slate-50 min-h-screen flex flex-col">
+            {/* Fixed Header */}
+            <div className="sticky top-0 bg-slate-50 z-10 p-8 pb-4 border-b border-slate-200">
+                <div className="max-w-5xl mx-auto">
+                    <h1 className="text-2xl font-bold text-slate-800">My Tickets</h1>
+                    <p className="text-sm text-slate-500 mt-1">
+                        {tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'} found
+                    </p>
+                </div>
+            </div>
+            
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto p-8 pt-4">
+                <div className="max-w-5xl mx-auto">
+                    <div className="space-y-4"> 
+                        {tickets.length > 0 ? (
+                            tickets.map((t) => ( 
+                                <div 
+                                    key={t._id} 
+                                    onClick={() => setSelectedTicket(t)} 
+                                    className="bg-white p-6 rounded-xl border border-slate-200 flex items-center justify-between hover:shadow-md hover:border-blue-300 cursor-pointer transition"
+                                > 
+                                    <div className="flex items-center gap-6 flex-1"> 
+                                        <div className={`w-1 h-12 rounded-full ${getStatusStyle(t.status).split(' ')[0]}`}></div> 
+                                        <div className="flex-1"> 
+                                            <h3 className="text-lg font-bold text-slate-800">{t.title}</h3> 
+                                            <p className="text-sm text-slate-500">
+                                                {t.ticketId} • {new Date(t.createdAt).toLocaleDateString()}
+                                            </p> 
+                                        </div> 
+                                    </div> 
+
+                                    <div className="flex items-center gap-4"> 
+                                        <span className={`px-4 py-1 rounded-full text-xs font-bold uppercase shadow-sm ${getStatusStyle(t.status)}`}> 
+                                            {t.status} 
+                                        </span> 
                                     </div> 
                                 </div> 
-
-                                <div className="flex items-center gap-4"> 
-                                    <span className={`px-4 py-1 rounded-full text-xs font-bold uppercase shadow-sm ${getStatusStyle(t.status)}`}> 
-                                        {t.status} 
-                                    </span> 
-                                </div> 
-                            </div> 
-                        ))
-                    ) : (
-                        <div className="bg-white p-12 rounded-xl border border-dashed border-slate-300 text-center">
-                            <p className="text-slate-500">You haven't logged any tickets yet.</p>
-                        </div>
-                    )}
+                            ))
+                        ) : (
+                            <div className="bg-white p-12 rounded-xl border border-dashed border-slate-300 text-center">
+                                <p className="text-slate-500">You haven't logged any tickets yet.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* Modal Logic */}
+            {/* Modal - Keep the same */}
             {selectedTicket && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-start">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-start sticky top-0 bg-white z-10">
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">{selectedTicket.ticketId}</span>
                                 <h2 className="text-2xl font-bold text-slate-800">{selectedTicket.title}</h2>
@@ -215,7 +225,7 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                             )}
                         </div>
 
-                        <div className="p-6 border-t border-slate-100 text-right">
+                        <div className="p-6 border-t border-slate-100 text-right sticky bottom-0 bg-white">
                             <button 
                                 onClick={() => setSelectedTicket(null)}
                                 className="px-6 py-2 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition"
