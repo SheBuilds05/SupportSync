@@ -12,42 +12,48 @@ function AdminDashboard() {
   const [newAdminCode, setNewAdminCode] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const API_BASE = "https://supportsync-ujib.onrender.com/api/admin";
+
   useEffect(() => {
     fetchData();
   }, []);
 
- const fetchData = async () => {
-  setLoading(true);
-  try {
-    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-    
-    const API_BASE = "https://supportsync-ujib.onrender.com/api/admin";
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
 
-    const [u, t, s, l] = await Promise.all([
-      fetch(`${API_BASE}/users`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-      fetch(`${API_BASE}/tickets`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-      fetch(`${API_BASE}/stats`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-      fetch(`${API_BASE}/logs`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
-    ]);
+      const [u, t, s, l] = await Promise.all([
+        fetch(`${API_BASE}/users`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE}/tickets`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE}/stats`, { headers }).then(r => r.json()),
+        fetch(`${API_BASE}/logs`, { headers }).then(r => r.json())
+      ]);
 
-    setUsers(u || []);
-    setTickets(t || []);
-    setStats(s || { totalUsers: 0, totalTickets: 0, pendingWork: 0 });
-    setLogs(l || []);
-    
-    setAgents(u?.filter((user: any) => user.role === 'support') || []);
+      setUsers(Array.isArray(u) ? u : []);
+      setTickets(Array.isArray(t) ? t : []);
+      setStats(s?.totalUsers !== undefined ? s : (s?.data || { totalUsers: 0, totalTickets: 0, pendingWork: 0 }));
+      setLogs(Array.isArray(l) ? l : []);
+      
+      const userList = Array.isArray(u) ? u : [];
+      setAgents(userList.filter((user: any) => user.role === 'support'));
 
-  } catch (err) {
-    console.error("Connection failed. Check if the Render server is awake:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+    } catch (err) {
+      console.error("Connection failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const changeRole = async (userId: string, newRole: string) => {
-    await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    await fetch(`${API_BASE}/users/${userId}/role`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      },
       body: JSON.stringify({ role: newRole })
     });
     fetchData();
@@ -55,9 +61,13 @@ function AdminDashboard() {
 
   const updateSecretCode = async () => {
     if(!newAdminCode) return;
-    await fetch("http://localhost:5000/api/admin/update-code", {
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    await fetch(`${API_BASE}/update-code`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ newCode: newAdminCode })
     });
     alert("✅ Secret code updated successfully!");
@@ -65,9 +75,13 @@ function AdminDashboard() {
   };
 
   const reassignTicket = async (ticketId: string, agentId: string) => {
-    await fetch(`http://localhost:5000/api/admin/tickets/${ticketId}/reassign`, {
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    await fetch(`${API_BASE}/tickets/${ticketId}/reassign`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({ agentId })
     });
     fetchData();
