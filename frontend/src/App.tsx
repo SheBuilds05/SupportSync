@@ -119,18 +119,12 @@ function AppContent() {
       />
       
       {/* Additional routes from second file - using Layout */}
-      <Route 
-        path="/user-dashboard" 
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
+       <Route path="/user-dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<UserDashboard />} />
-        <Route path="my-tickets" element={<UserTickets />} />
-        <Route path="settings" element={<UserSettings />} />
+        <Route path="my-tickets" element={<UserTickets user={user} />} />
+        <Route path="settings" element={<UserSettings user={user ?? undefined} onLogout={handleLogout} />} />
       </Route>
+
       
       {/* Catch all - redirect to root which handles role-based routing */}
       <Route path="*" element={<Navigate to="/" replace />} />
