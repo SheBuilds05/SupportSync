@@ -12,6 +12,7 @@ function AdminDashboard() {
   const [newAdminCode, setNewAdminCode] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // centralized API URL to ensure consistency across all functions
   const API_BASE = "https://supportsync-ujib.onrender.com/api/admin";
 
   useEffect(() => {
@@ -25,22 +26,23 @@ function AdminDashboard() {
       const headers = { 'Authorization': `Bearer ${token}` };
 
       const [u, t, s, l] = await Promise.all([
-        fetch(`${API_BASE}/users`, { headers }).then(r => r.json()),
-        fetch(`${API_BASE}/tickets`, { headers }).then(r => r.json()),
-        fetch(`${API_BASE}/stats`, { headers }).then(r => r.json()),
-        fetch(`${API_BASE}/logs`, { headers }).then(r => r.json())
+        fetch(`${API_BASE}/users`, { headers }).then(r => r.ok ? r.json() : []),
+        fetch(`${API_BASE}/tickets`, { headers }).then(r => r.ok ? r.json() : []),
+        fetch(`${API_BASE}/stats`, { headers }).then(r => r.ok ? r.json() : null),
+        fetch(`${API_BASE}/logs`, { headers }).then(r => r.ok ? r.json() : [])
       ]);
 
-      setUsers(Array.isArray(u) ? u : []);
-      setTickets(Array.isArray(t) ? t : []);
+      setUsers(u || []);
+      setTickets(t || []);
+      // Handles both direct objects and nested data objects
       setStats(s?.totalUsers !== undefined ? s : (s?.data || { totalUsers: 0, totalTickets: 0, pendingWork: 0 }));
-      setLogs(Array.isArray(l) ? l : []);
+      setLogs(l || []);
       
       const userList = Array.isArray(u) ? u : [];
       setAgents(userList.filter((user: any) => user.role === 'support'));
 
     } catch (err) {
-      console.error("Connection failed:", err);
+      console.error("Connection failed. Check if the Render server is awake:", err);
     } finally {
       setLoading(false);
     }
@@ -48,43 +50,55 @@ function AdminDashboard() {
 
   const changeRole = async (userId: string, newRole: string) => {
     const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-    await fetch(`${API_BASE}/users/${userId}/role`, {
-      method: 'PATCH',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify({ role: newRole })
-    });
-    fetchData();
+    try {
+      await fetch(`${API_BASE}/users/${userId}/role`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ role: newRole })
+      });
+      fetchData();
+    } catch (err) {
+      console.error("Failed to update role:", err);
+    }
   };
 
   const updateSecretCode = async () => {
     if(!newAdminCode) return;
     const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-    await fetch(`${API_BASE}/update-code`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ newCode: newAdminCode })
-    });
-    alert("✅ Secret code updated successfully!");
-    setNewAdminCode("");
+    try {
+      await fetch(`${API_BASE}/update-code`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newCode: newAdminCode })
+      });
+      alert("✅ Secret code updated successfully!");
+      setNewAdminCode("");
+    } catch (err) {
+      console.error("Failed to update secret code:", err);
+    }
   };
 
   const reassignTicket = async (ticketId: string, agentId: string) => {
     const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
-    await fetch(`${API_BASE}/tickets/${ticketId}/reassign`, {
-      method: 'PATCH',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ agentId })
-    });
-    fetchData();
+    try {
+      await fetch(`${API_BASE}/tickets/${ticketId}/reassign`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ agentId })
+      });
+      fetchData();
+    } catch (err) {
+      console.error("Failed to reassign ticket:", err);
+    }
   };
 
   return (
@@ -156,7 +170,7 @@ function AdminDashboard() {
             <Shield size={20} className="text-blue-600" /> Users & Permissions
           </h2>
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-            {users.map(u => (
+            {users.length > 0 ? users.map(u => (
               <div key={u._id} className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
                 <div>
                   <p className="font-semibold text-slate-700">{u.name}</p>
@@ -172,7 +186,7 @@ function AdminDashboard() {
                   <option value="admin">Admin</option>
                 </select>
               </div>
-            ))}
+            )) : <p className="text-slate-400 text-sm italic">No users found.</p>}
           </div>
         </div>
 
@@ -207,7 +221,7 @@ function AdminDashboard() {
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-8">
         <h2 className="text-lg font-bold mb-6 text-slate-800">Global Ticket Reassignment</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-80 overflow-y-auto pr-2">
-          {tickets.map(t => (
+          {tickets.length > 0 ? tickets.map(t => (
             <div key={t._id} className="p-4 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors">
               <div className="mb-3">
                 <p className="font-semibold text-slate-700 truncate" title={t.title}>{t.title}</p>
@@ -224,7 +238,7 @@ function AdminDashboard() {
                 ))}
               </select>
             </div>
-          ))}
+          )) : <p className="text-slate-400 text-sm italic">No tickets found.</p>}
         </div>
       </div>
 
@@ -246,7 +260,7 @@ function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {logs?.map((log) => (
+              {logs.length > 0 ? logs.map((log) => (
                 <tr key={log._id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="p-4 text-slate-500">{new Date(log.timestamp).toLocaleString()}</td>
                   <td className="p-4 font-semibold text-blue-700">{log.performedBy?.name || "System"}</td>
@@ -257,7 +271,11 @@ function AdminDashboard() {
                   </td>
                   <td className="p-4 text-slate-600">{log.details}</td>
                 </tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={4} className="p-4 text-center text-slate-400">No logs available.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
