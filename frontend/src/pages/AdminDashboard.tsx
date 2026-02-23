@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Users, Ticket, Clock, Shield, LogOut, RefreshCw } from "lucide-react";
+import { Users, Ticket, Clock, Shield, LogOut, RefreshCw, Activity } from "lucide-react";
 
 function AdminDashboard() {
   const { logout } = useAuth();
@@ -30,8 +30,6 @@ function AdminDashboard() {
       setTickets(t);
       setStats(s);
       setLogs(l);
-      
-      // Correctly filter agents after users are fetched
       setAgents(u.filter((user: any) => user.role === 'support'));
     } catch (err) {
       console.error("Error fetching admin data:", err);
@@ -50,12 +48,13 @@ function AdminDashboard() {
   };
 
   const updateSecretCode = async () => {
+    if(!newAdminCode) return;
     await fetch("http://localhost:5000/api/admin/update-code", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newCode: newAdminCode })
     });
-    alert("Secret code updated successfully!");
+    alert("✅ Secret code updated successfully!");
     setNewAdminCode("");
   };
 
@@ -69,49 +68,62 @@ function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a192f] text-white p-4 md:p-8">
+    <div className="ml-64 min-h-screen bg-slate-50 text-slate-800 p-8">
       {/* Header */}
-      <div className="flex justify-between items-center mb-10">
+      <div className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Admin Control</h1>
-          <p className="text-[#82AFE5] opacity-70">SupportSync System Management</p>
+          <h1 className="text-3xl font-bold text-slate-900">Admin Control</h1>
+          <p className="text-slate-500">System-wide management and oversight</p>
         </div>
-        <div className="flex gap-4">
-          <button onClick={fetchData} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+        <div className="flex gap-3">
+          <button 
+            onClick={fetchData} 
+            className="p-2.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm"
+            title="Refresh Data"
+          >
             <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
           </button>
-          <button onClick={logout} className="flex items-center gap-2 bg-red-500/20 border border-red-500/50 text-red-200 px-5 py-2 rounded-xl hover:bg-red-500/30 transition-all">
+          <button 
+            onClick={logout} 
+            className="flex items-center gap-2 bg-white border border-red-200 text-red-600 px-5 py-2.5 rounded-lg hover:bg-red-50 transition-all font-medium shadow-sm"
+          >
             <LogOut size={18} /> Logout
           </button>
         </div>
       </div>
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div className="glass-container p-6 rounded-3xl border-l-4 border-[#82AFE5]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-4">
-            <Users className="text-[#82AFE5]" />
+            <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+              <Users size={24} />
+            </div>
             <div>
-              <p className="text-xs uppercase tracking-widest opacity-50">Total Users</p>
-              <p className="text-3xl font-bold">{stats.totalUsers}</p>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Users</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.totalUsers}</p>
             </div>
           </div>
         </div>
-        <div className="glass-container p-6 rounded-3xl border-l-4 border-blue-500">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-4">
-            <Ticket className="text-blue-500" />
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+              <Ticket size={24} />
+            </div>
             <div>
-              <p className="text-xs uppercase tracking-widest opacity-50">Global Tickets</p>
-              <p className="text-3xl font-bold">{stats.totalTickets}</p>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Global Tickets</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.totalTickets}</p>
             </div>
           </div>
         </div>
-        <div className="glass-container p-6 rounded-3xl border-l-4 border-orange-500">
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-4">
-            <Clock className="text-orange-500" />
+            <div className="p-3 bg-orange-50 text-orange-600 rounded-lg">
+              <Clock size={24} />
+            </div>
             <div>
-              <p className="text-xs uppercase tracking-widest opacity-50">Pending Work</p>
-              <p className="text-3xl font-bold">{stats.pendingWork}</p>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Pending Work</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.pendingWork}</p>
             </div>
           </div>
         </div>
@@ -119,19 +131,19 @@ function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* USER MANAGEMENT */}
-        <div className="glass-container p-8 rounded-[2rem]">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Shield size={20} className="text-[#82AFE5]" /> Users & Permissions
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
+            <Shield size={20} className="text-blue-600" /> Users & Permissions
           </h2>
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {users.map(u => (
-              <div key={u._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div key={u._id} className="flex justify-between items-center p-4 bg-slate-50 rounded-lg border border-slate-100">
                 <div>
-                  <p className="font-medium">{u.name}</p>
-                  <p className="text-xs opacity-40 uppercase tracking-tighter">{u.email}</p>
+                  <p className="font-semibold text-slate-700">{u.name}</p>
+                  <p className="text-xs text-slate-500">{u.email}</p>
                 </div>
                 <select 
-                  className="bg-[#1B314C] border border-white/10 rounded-lg px-3 py-1 text-sm outline-none focus:border-[#82AFE5]"
+                  className="bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   value={u.role} 
                   onChange={(e) => changeRole(u._id, e.target.value)}
                 >
@@ -145,40 +157,44 @@ function AdminDashboard() {
         </div>
 
         {/* SECURITY & CODES */}
-        <div className="glass-container p-8 rounded-[2rem]">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-            <Shield size={20} className="text-cyan-400" /> System Security
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-slate-800">
+            <Activity size={20} className="text-blue-600" /> System Security
           </h2>
-          <div className="bg-cyan-500/5 border border-cyan-500/20 p-6 rounded-2xl">
-            <label className="block text-sm font-bold uppercase tracking-widest mb-3 opacity-70">Admin Secret Code</label>
+          <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-xl">
+            <label className="block text-xs font-bold uppercase tracking-widest mb-3 text-slate-500">Admin Secret Code</label>
             <div className="flex gap-3">
               <input 
                 type="text" 
-                className="bg-white/5 border border-white/10 p-3 flex-grow rounded-xl outline-none focus:border-cyan-400"
-                placeholder="New Secret Code" 
+                className="bg-white border border-slate-300 p-2.5 flex-grow rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                placeholder="Enter new secret code" 
                 value={newAdminCode}
                 onChange={(e) => setNewAdminCode(e.target.value)}
               />
-              <button onClick={updateSecretCode} className="bg-cyan-500 text-[#0a192f] font-bold px-6 py-2 rounded-xl hover:brightness-110 transition-all">
+              <button 
+                onClick={updateSecretCode} 
+                className="bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-md active:transform active:scale-95"
+              >
                 Update
               </button>
             </div>
+            <p className="mt-4 text-xs text-slate-400 italic">This code is required for new admin registrations.</p>
           </div>
         </div>
       </div>
 
       {/* TICKET REASSIGNMENT */}
-      <div className="glass-container p-8 rounded-[2rem] mt-8">
-        <h2 className="text-xl font-bold mb-6">Ticket Reassignment</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2">
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mt-8">
+        <h2 className="text-lg font-bold mb-6 text-slate-800">Global Ticket Reassignment</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-80 overflow-y-auto pr-2">
           {tickets.map(t => (
-            <div key={t._id} className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
-              <div>
-                <p className="font-medium">{t.title}</p>
-                <p className="text-[10px] uppercase opacity-40">Agent: {t.assignedTo?.name || "Unassigned"}</p>
+            <div key={t._id} className="p-4 bg-slate-50 rounded-lg border border-slate-100 hover:border-blue-200 transition-colors">
+              <div className="mb-3">
+                <p className="font-semibold text-slate-700 truncate" title={t.title}>{t.title}</p>
+                <p className="text-[11px] font-medium text-slate-400 uppercase">Current: {t.assignedTo?.name || "Unassigned"}</p>
               </div>
               <select 
-                className="bg-[#1B314C] border border-white/10 rounded-lg px-3 py-1 text-sm outline-none"
+                className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm outline-none focus:border-blue-500"
                 onChange={(e) => reassignTicket(t._id, e.target.value)}
                 value={t.assignedTo?._id || ""}
               >
@@ -193,29 +209,33 @@ function AdminDashboard() {
       </div>
 
       {/* AUDIT LOGS */}
-      <div className="glass-container p-8 rounded-[2rem] mt-8 overflow-hidden">
-        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">📜 System Audit Logs</h2>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mt-8 overflow-hidden">
+        <div className="p-6 border-b border-slate-100">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span>📋</span> System Audit Logs
+          </h2>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-white/5 uppercase text-[10px] font-bold tracking-widest">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[11px] font-bold tracking-wider">
               <tr>
-                <th className="p-4">Time</th>
+                <th className="p-4">Timestamp</th>
                 <th className="p-4">Admin</th>
                 <th className="p-4">Action</th>
                 <th className="p-4">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100">
               {logs?.map((log) => (
-                <tr key={log._id} className="hover:bg-white/5 transition-colors">
-                  <td className="p-4 opacity-50">{new Date(log.timestamp).toLocaleString()}</td>
-                  <td className="p-4 font-bold text-[#82AFE5]">{log.performedBy?.name || "System"}</td>
+                <tr key={log._id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="p-4 text-slate-500">{new Date(log.timestamp).toLocaleString()}</td>
+                  <td className="p-4 font-semibold text-blue-700">{log.performedBy?.name || "System"}</td>
                   <td className="p-4">
-                    <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter border border-blue-500/20">
+                    <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border border-blue-200">
                       {log.action}
                     </span>
                   </td>
-                  <td className="p-4 opacity-70">{log.details}</td>
+                  <td className="p-4 text-slate-600">{log.details}</td>
                 </tr>
               ))}
             </tbody>
