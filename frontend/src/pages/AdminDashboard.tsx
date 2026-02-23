@@ -16,27 +16,33 @@ function AdminDashboard() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [u, t, s, l] = await Promise.all([
-        fetch("http://localhost:5000/api/admin/users").then(r => r.json()),
-        fetch("http://localhost:5000/api/admin/tickets").then(r => r.json()),
-        fetch("http://localhost:5000/api/admin/stats").then(r => r.json()),
-        fetch("http://localhost:5000/api/admin/logs").then(r => r.json())
-      ]);
+ const fetchData = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    
+    const API_BASE = "https://supportsync-ujib.onrender.com/api/admin";
 
-      setUsers(u);
-      setTickets(t);
-      setStats(s);
-      setLogs(l);
-      setAgents(u.filter((user: any) => user.role === 'support'));
-    } catch (err) {
-      console.error("Error fetching admin data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const [u, t, s, l] = await Promise.all([
+      fetch(`${API_BASE}/users`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+      fetch(`${API_BASE}/tickets`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+      fetch(`${API_BASE}/stats`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+      fetch(`${API_BASE}/logs`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json())
+    ]);
+
+    setUsers(u || []);
+    setTickets(t || []);
+    setStats(s || { totalUsers: 0, totalTickets: 0, pendingWork: 0 });
+    setLogs(l || []);
+    
+    setAgents(u?.filter((user: any) => user.role === 'support') || []);
+
+  } catch (err) {
+    console.error("Connection failed. Check if the Render server is awake:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const changeRole = async (userId: string, newRole: string) => {
     await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
