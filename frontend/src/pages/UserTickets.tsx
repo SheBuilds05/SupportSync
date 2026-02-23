@@ -14,6 +14,7 @@ type Ticket = {
     description: string;   
     category: string;      
     assignedTo?: string;
+    // Updated type to handle the Buffer data from MongoDB
     attachment?: {
         data: { data: number[] };
         contentType: string;
@@ -30,9 +31,7 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
     const [loading, setLoading] = useState(true);
     const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
-    // Production API Base URL
-    const API_BASE_URL = "https://supportsync-ujib.onrender.com/api";
-
+    // Helper to convert MongoDB Buffer to a browser-usable URL
     const getAttachmentUrl = (attachment: any) => {
         if (!attachment || !attachment.data) return null;
         try {
@@ -53,7 +52,8 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                     setLoading(false);
                     return;
                 }
-                const response = await fetch(`${API_BASE_URL}/tickets/my-tickets/${user.email}`, {
+
+                const response = await fetch(`https://supportsync-ujib.onrender.com/api/tickets/my-tickets/${user.email}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -92,60 +92,47 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
     }
 
     return ( 
-        /* FIXED: Changed structure for proper scrolling */
-        <div className="ml-64 bg-slate-50 min-h-screen flex flex-col">
-            {/* Fixed Header */}
-            <div className="sticky top-0 bg-slate-50 z-10 p-8 pb-4 border-b border-slate-200">
-                <div className="max-w-5xl mx-auto">
-                    <h1 className="text-2xl font-bold text-slate-800">My Tickets</h1>
-                    <p className="text-sm text-slate-500 mt-1">
-                        {tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'} found
-                    </p>
-                </div>
-            </div>
+        <div className="ml-64 p-8 bg-slate-50 min-h-screen relative"> 
+            <h1 className="text-2xl font-bold text-slate-800 mb-6">My Tickets</h1> 
             
-            {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto p-8 pt-4">
-                <div className="max-w-5xl mx-auto">
-                    <div className="space-y-4"> 
-                        {tickets.length > 0 ? (
-                            tickets.map((t) => ( 
-                                <div 
-                                    key={t._id} 
-                                    onClick={() => setSelectedTicket(t)} 
-                                    className="bg-white p-6 rounded-xl border border-slate-200 flex items-center justify-between hover:shadow-md hover:border-blue-300 cursor-pointer transition"
-                                > 
-                                    <div className="flex items-center gap-6 flex-1"> 
-                                        <div className={`w-1 h-12 rounded-full ${getStatusStyle(t.status).split(' ')[0]}`}></div> 
-                                        <div className="flex-1"> 
-                                            <h3 className="text-lg font-bold text-slate-800">{t.title}</h3> 
-                                            <p className="text-sm text-slate-500">
-                                                {t.ticketId} • {new Date(t.createdAt).toLocaleDateString()}
-                                            </p> 
-                                        </div> 
-                                    </div> 
-
-                                    <div className="flex items-center gap-4"> 
-                                        <span className={`px-4 py-1 rounded-full text-xs font-bold uppercase shadow-sm ${getStatusStyle(t.status)}`}> 
-                                            {t.status} 
-                                        </span> 
-                                    </div> 
+            <div className="space-y-4"> 
+                {tickets.length > 0 ? (
+                    tickets.map((t) => ( 
+                        <div 
+                            key={t._id} 
+                            onClick={() => setSelectedTicket(t)} 
+                            className="bg-white p-6 rounded-xl border border-slate-200 flex items-center justify-between hover:shadow-md hover:border-blue-300 cursor-pointer transition"
+                        > 
+                            <div className="flex items-center gap-6"> 
+                                <div className={`w-1 h-12 rounded-full ${getStatusStyle(t.status).split(' ')[0]}`}></div> 
+                                <div> 
+                                    <h3 className="text-lg font-bold text-slate-800">{t.title}</h3> 
+                                    <p className="text-sm text-slate-500">
+                                        {t.ticketId} • {new Date(t.createdAt).toLocaleDateString()}
+                                    </p> 
                                 </div> 
-                            ))
-                        ) : (
-                            <div className="bg-white p-12 rounded-xl border border-dashed border-slate-300 text-center">
-                                <p className="text-slate-500">You haven't logged any tickets yet.</p>
-                            </div>
-                        )}
+                            </div> 
+
+                            <div className="flex items-center gap-4"> 
+                                <span className={`px-4 py-1 rounded-full text-xs font-bold uppercase shadow-sm ${getStatusStyle(t.status)}`}> 
+                                    {t.status} 
+                                </span> 
+                            </div> 
+                        </div> 
+                    ))
+                ) : (
+                    <div className="bg-white p-12 rounded-xl border border-dashed border-slate-300 text-center">
+                        <p className="text-slate-500">You haven't logged any tickets yet.</p>
                     </div>
-                </div>
+                )}
             </div>
 
-            {/* Modal - Keep the same */}
+            {/* --- MODAL POP-UP --- */}
             {selectedTicket && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-start sticky top-0 bg-white z-10">
+                        {/* Modal Header */}
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-start">
                             <div>
                                 <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">{selectedTicket.ticketId}</span>
                                 <h2 className="text-2xl font-bold text-slate-800">{selectedTicket.title}</h2>
@@ -158,6 +145,7 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                             </button>
                         </div>
 
+                        {/* Modal Body */}
                         <div className="p-6 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-slate-50 p-3 rounded-lg">
@@ -172,6 +160,14 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                                         {selectedTicket.priority}
                                     </p>
                                 </div>
+                                <div className="bg-slate-50 p-3 rounded-lg">
+                                    <p className="text-xs text-slate-400 uppercase font-bold">Category</p>
+                                    <p className="text-sm font-semibold text-slate-700 mt-1">{selectedTicket.category || 'General'}</p>
+                                </div>
+                                <div className="bg-slate-50 p-3 rounded-lg">
+                                    <p className="text-xs text-slate-400 uppercase font-bold">Assigned To</p>
+                                    <p className="text-sm font-semibold text-slate-700 mt-1">{selectedTicket.assignedTo || 'Unassigned'}</p>
+                                </div>
                             </div>
 
                             <div>
@@ -181,6 +177,7 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                                 </div>
                             </div>
 
+                            {/* --- ATTACHMENT SECTION --- */}
                             {selectedTicket.attachment && (
                                 <div className="mt-6 border-t border-slate-100 pt-6">
                                     <p className="text-xs text-slate-400 uppercase font-bold mb-3">Attachment</p>
@@ -211,8 +208,9 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                                             </a>
                                         </div>
 
+                                        {/* Image Preview */}
                                         {selectedTicket.attachment.contentType.startsWith('image/') && (
-                                            <div className="mt-4 border-t border-slate-200 pt-4 text-center">
+                                            <div className="mt-4 border-t border-slate-200 pt-4">
                                                 <img 
                                                     src={getAttachmentUrl(selectedTicket.attachment) || ''} 
                                                     alt="Preview" 
@@ -225,7 +223,8 @@ export const UserTickets = ({ user }: UserTicketsProps) => {
                             )}
                         </div>
 
-                        <div className="p-6 border-t border-slate-100 text-right sticky bottom-0 bg-white">
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-slate-100 text-right">
                             <button 
                                 onClick={() => setSelectedTicket(null)}
                                 className="px-6 py-2 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-700 transition"
