@@ -180,3 +180,5 @@ export const Settings = () => {
     </div>
   );
 };
+
+export default UserSettings;
