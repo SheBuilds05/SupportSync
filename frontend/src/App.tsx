@@ -14,6 +14,8 @@ import Analytics from "./pages/Analytics";
 import UserDashboard from "./pages/UserDashboard";
 import UserTickets from "./pages/UserTickets";
 import UserSettings from "./pages/UserSettings";
+import MyTickets from "./pages/MyTickets";
+import Settings from "./pages/Settings";
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
@@ -79,7 +81,22 @@ function AppContent() {
       <Route path="/admin-dashboard" element={<ProtectedRoute>{user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" replace />}</ProtectedRoute>} />
       <Route path="/support-dashboard" element={<ProtectedRoute>{user?.role === 'support' ? <SupportDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />}</ProtectedRoute>} />
       <Route path="/analytics" element={<ProtectedRoute>{user?.role === 'support' ? <Analytics user={user} onLogout={handleLogout} /> : <Navigate to="/" replace />}</ProtectedRoute>} />
-
+      <Route 
+        path="/my-tickets" 
+        element={
+          <ProtectedRoute>
+            <MyTickets user={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
+        path="/settings" 
+        element={
+          <ProtectedRoute>
+            <Settings user={user} onLogout={handleLogout} />
+          </ProtectedRoute>
+        } 
       <Route path="/user-dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<UserDashboard />} />
         <Route path="my-tickets" element={<UserTickets />} />
