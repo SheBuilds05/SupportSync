@@ -148,7 +148,7 @@ const SupportDashboard = ({ user, onLogout }) => {
       if (response.ok) {
         console.log('✅ Ticket assigned successfully to:', user.name);
         
-        // IMMEDIATELY update the local state - THIS IS THE KEY FIX
+        // IMMEDIATELY update the local state
         setTickets(prevTickets => 
           prevTickets.map(ticket => {
             if (ticket._id === id) {
@@ -259,110 +259,114 @@ const SupportDashboard = ({ user, onLogout }) => {
     <div className="flex bg-white min-h-screen">
       <Sidebar user={user} onLogout={onLogout} />
 
-      <div className="flex-1 p-4 md:p-8">
-        <Navbar user={user} />
-        
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <p className="text-gray-400 text-sm">Support Dashboard</p>
-          <h1 className="text-3xl font-bold text-[#1B314C]">Ticket Management</h1>
-          <p className="text-gray-500 mt-1">
-            {tickets.length} total tickets • {openCount} open • {inProgressCount} in progress • {resolvedCount} resolved
-          </p>
-        </div>
-
-        <DashboardStats tickets={tickets} />
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-            <p className="font-semibold">Error:</p>
-            <p>{error}</p>
+      {/* Main content area with scrolling */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <Navbar user={user} />
+          
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <p className="text-gray-400 text-sm">Support Dashboard</p>
+            <h1 className="text-3xl font-bold text-[#1B314C]">Ticket Management</h1>
+            <p className="text-gray-500 mt-1">
+              {tickets.length} total tickets • {openCount} open • {inProgressCount} in progress • {resolvedCount} resolved
+            </p>
           </div>
-        )}
 
-        {/* Filters Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search tickets by ID, title, description, or creator..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] focus:border-transparent"
-              />
+          <DashboardStats tickets={tickets} />
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+              <p className="font-semibold">Error:</p>
+              <p>{error}</p>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3">
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                className="border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] min-w-[140px]"
-              >
-                <option>All Status</option>
-                <option>Open</option>
-                <option>In Progress</option>
-                <option>Resolved</option>
-              </select>
+          )}
 
-              <select
-                value={priorityFilter}
-                onChange={e => setPriorityFilter(e.target.value)}
-                className="border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] min-w-[140px]"
-              >
-                <option>All Priority</option>
-                <option>High</option>
-                <option>Medium</option>
-                <option>Low</option>
-              </select>
+          {/* Filters Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search tickets by ID, title, description, or creator..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] focus:border-transparent"
+                />
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] min-w-[140px]"
+                >
+                  <option>All Status</option>
+                  <option>Open</option>
+                  <option>In Progress</option>
+                  <option>Resolved</option>
+                </select>
+
+                <select
+                  value={priorityFilter}
+                  onChange={e => setPriorityFilter(e.target.value)}
+                  className="border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] min-w-[140px]"
+                >
+                  <option>All Priority</option>
+                  <option>High</option>
+                  <option>Medium</option>
+                  <option>Low</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Results count and active filters */}
-        <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div className="text-sm text-gray-500">
-            Showing {filteredTickets.length} of {tickets.length} tickets
+          {/* Results count and active filters */}
+          <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="text-sm text-gray-500">
+              Showing {filteredTickets.length} of {tickets.length} tickets
+            </div>
+            {(search || statusFilter !== "All" || priorityFilter !== "All") && (
+              <div className="flex gap-2 text-xs">
+                {search && <span className="bg-gray-100 px-2 py-1 rounded">Search: "{search}"</span>}
+                {statusFilter !== "All" && <span className="bg-gray-100 px-2 py-1 rounded">Status: {statusFilter}</span>}
+                {priorityFilter !== "All" && <span className="bg-gray-100 px-2 py-1 rounded">Priority: {priorityFilter}</span>}
+              </div>
+            )}
           </div>
-          {(search || statusFilter !== "All" || priorityFilter !== "All") && (
-            <div className="flex gap-2 text-xs">
-              {search && <span className="bg-gray-100 px-2 py-1 rounded">Search: "{search}"</span>}
-              {statusFilter !== "All" && <span className="bg-gray-100 px-2 py-1 rounded">Status: {statusFilter}</span>}
-              {priorityFilter !== "All" && <span className="bg-gray-100 px-2 py-1 rounded">Priority: {priorityFilter}</span>}
+
+          {/* Ticket Grid - Now scrolls within this container */}
+          {filteredTickets.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+              <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">No tickets found</h3>
+              <p className="text-gray-400">
+                {search || statusFilter !== "All" || priorityFilter !== "All" 
+                  ? "Try adjusting your filters"
+                  : "No tickets available in the database"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+              {filteredTickets.map(ticket => (
+                <TicketCard
+                  key={ticket._id}
+                  ticket={ticket}
+                  updateStatus={updateStatus}
+                  assignToMe={assignToMe}
+                  openModal={() => setSelectedTicket(ticket)}
+                  currentUser={user}
+                />
+              ))}
             </div>
           )}
         </div>
 
-        {/* Ticket Grid */}
-        {filteredTickets.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-700 mb-2">No tickets found</h3>
-            <p className="text-gray-400">
-              {search || statusFilter !== "All" || priorityFilter !== "All" 
-                ? "Try adjusting your filters"
-                : "No tickets available in the database"}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTickets.map(ticket => (
-              <TicketCard
-                key={ticket._id}
-                ticket={ticket}
-                updateStatus={updateStatus}
-                assignToMe={assignToMe}
-                openModal={() => setSelectedTicket(ticket)}
-                currentUser={user}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Ticket Modal */}
+        {/* Ticket Modal - stays outside scrollable area */}
         {selectedTicket && (
           <TicketModal
             ticket={selectedTicket}
