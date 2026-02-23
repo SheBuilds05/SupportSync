@@ -55,7 +55,7 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
       setLoading(true);
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
       
-      // OPTION 1: Fetch all tickets and filter (what you're currently doing)
+      // Fetch all tickets and filter
       const response = await fetch('https://supportsync-ujib.onrender.com/api/tickets', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -88,7 +88,6 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
     try {
       const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
       
-      // ✅ FIXED: Added backticks and included the ticket ID in the URL
       const response = await fetch(`https://supportsync-ujib.onrender.com/api/tickets/${id}`, {
         method: 'PUT',
         headers: {
@@ -165,94 +164,98 @@ const MyTickets = ({ user, onLogout }: MyTicketsProps) => {
     <div className="flex bg-white min-h-screen">
       <Sidebar user={user} onLogout={onLogout} />
 
-      <div className="flex-1 p-4 md:p-8">
-        <Navbar user={user} title="My Tickets" />
+      {/* Main content area with scrolling */}
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <Navbar user={user} title="My Tickets" />
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#1B314C]">My Assigned Tickets</h1>
-          <p className="text-gray-500 mt-1">
-            {totalAssigned} ticket{totalAssigned !== 1 ? 's' : ''} currently assigned to you
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-gray-400 text-sm mb-1">Total Assigned</p>
-            <p className="text-3xl font-bold text-[#1B314C]">{totalAssigned}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-gray-400 text-sm mb-1">Open</p>
-            <p className="text-3xl font-bold text-orange-600">{openCount}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-gray-400 text-sm mb-1">In Progress</p>
-            <p className="text-3xl font-bold text-blue-600">{inProgressCount}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <p className="text-gray-400 text-sm mb-1">Resolved</p>
-            <p className="text-3xl font-bold text-green-600">{resolvedCount}</p>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search by ID, title, or description..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5]"
-              />
-            </div>
-           
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] min-w-[140px]"
-            >
-              <option>All Status</option>
-              <option>Open</option>
-              <option>In Progress</option>
-              <option>Resolved</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Results count */}
-        <div className="mb-4 text-sm text-gray-500">
-          Showing {filteredTickets.length} of {tickets.length} tickets
-        </div>
-
-        {/* Tickets Grid */}
-        {filteredTickets.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-700 mb-2">No tickets found</h3>
-            <p className="text-gray-400">
-              {search ? "Try adjusting your search" : "No tickets are currently assigned to you"}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-[#1B314C]">My Assigned Tickets</h1>
+            <p className="text-gray-500 mt-1">
+              {totalAssigned} ticket{totalAssigned !== 1 ? 's' : ''} currently assigned to you
             </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTickets.map(ticket => (
-              <TicketCard
-                key={ticket._id}
-                ticket={ticket}
-                updateStatus={updateStatus}
-                assignToMe={() => {}} // Already assigned, no need for assign button
-                openModal={() => setSelectedTicket(ticket)}
-                currentUser={user}
-              />
-            ))}
-          </div>
-        )}
 
-        {/* Ticket Modal */}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-gray-400 text-sm mb-1">Total Assigned</p>
+              <p className="text-3xl font-bold text-[#1B314C]">{totalAssigned}</p>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-gray-400 text-sm mb-1">Open</p>
+              <p className="text-3xl font-bold text-orange-600">{openCount}</p>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-gray-400 text-sm mb-1">In Progress</p>
+              <p className="text-3xl font-bold text-blue-600">{inProgressCount}</p>
+            </div>
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <p className="text-gray-400 text-sm mb-1">Resolved</p>
+              <p className="text-3xl font-bold text-green-600">{resolvedCount}</p>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search by ID, title, or description..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5]"
+                />
+              </div>
+             
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="border border-gray-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#82AFE5] min-w-[140px]"
+              >
+                <option>All Status</option>
+                <option>Open</option>
+                <option>In Progress</option>
+                <option>Resolved</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mb-4 text-sm text-gray-500">
+            Showing {filteredTickets.length} of {tickets.length} tickets
+          </div>
+
+          {/* Tickets Grid - Scrollable */}
+          {filteredTickets.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+              <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">No tickets found</h3>
+              <p className="text-gray-400">
+                {search ? "Try adjusting your search" : "No tickets are currently assigned to you"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8">
+              {filteredTickets.map(ticket => (
+                <TicketCard
+                  key={ticket._id}
+                  ticket={ticket}
+                  updateStatus={updateStatus}
+                  assignToMe={() => {}} // Already assigned, no need for assign button
+                  openModal={() => setSelectedTicket(ticket)}
+                  currentUser={user}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Ticket Modal - stays outside scrollable area */}
         {selectedTicket && (
           <TicketModal
             ticket={selectedTicket}
